@@ -133,6 +133,16 @@ SECTIONS_DATA = {
             ],
         },
         {
+            "id": "hiddenAction", "title": "Hidden Action", "isMulti": True,
+            "description": "Actions triggered by logic without button visibility.",
+            "fields": [
+                {"id": "id",               "label": "Hidden Action ID","type": "string", "description": "Unique identifier.",                              "example": "autoRepair"},
+                {"id": "autoTrigger",      "label": "Auto Trigger",    "type": "logic",  "description": "LogicBoolean for auto-activation.",              "example": "if self.hp() < 100"},
+                {"id": "convertTo",        "label": "Convert To",      "type": "string", "description": "Transform unit into another type.",              "example": "upgradedTank"},
+                {"id": "playSoundAtUnit",  "label": "Unit Sound",      "type": "sound",  "description": "Sound played at unit when triggered.",           "example": "repair.wav"},
+            ],
+        },
+        {
             "id": "animation", "title": "Animation", "isMulti": True,
             "description": "Frame-by-frame movement for body, turrets, and legs.",
             "fields": [
@@ -169,6 +179,18 @@ SECTIONS_DATA = {
                 {"id": "moveSpeed",   "label": "Move Speed",   "type": "float", "description": "Walking speed.",                 "example": "2.5"},
                 {"id": "image_leg",   "label": "Leg Image",    "type": "file",  "description": "Leg sprite asset.",              "example": "leg.png"},
                 {"id": "image_foot",  "label": "Foot Image",   "type": "file",  "description": "Foot sprite asset.",             "example": "foot.png"},
+            ],
+        },
+        {
+            "id": "arm", "title": "Arm", "isMulti": True,
+            "description": "Alternative numbered limb section (`arm_`) from reference sheet.",
+            "fields": [
+                {"id": "x",           "label": "X Pos",       "type": "float", "description": "Arm position horizontal.",          "example": "10"},
+                {"id": "y",           "label": "Y Pos",       "type": "float", "description": "Arm position vertical.",            "example": "10"},
+                {"id": "attach_x",    "label": "Attach X",    "type": "float", "description": "Joint point horizontal.",           "example": "5"},
+                {"id": "attach_y",    "label": "Attach Y",    "type": "float", "description": "Joint point vertical.",             "example": "5"},
+                {"id": "rotateSpeed", "label": "Rotate Speed","type": "float", "description": "Rotation velocity.",                 "example": "2.0"},
+                {"id": "image_end",   "label": "End Image",   "type": "file",  "description": "Sprite for arm ending.",            "example": "arm_end.png"},
             ],
         },
         {
@@ -215,6 +237,16 @@ SECTIONS_DATA = {
             ],
         },
         {
+            "id": "globalResource", "title": "Global Resource", "isMulti": True,
+            "description": "Team-level resource shared globally in matches.",
+            "fields": [
+                {"id": "id",               "label": "Resource ID",   "type": "string",  "description": "Internal name.",                "example": "metal"},
+                {"id": "displayName",      "label": "Display Name",  "type": "string",  "description": "Visible name.",                 "example": "Metal"},
+                {"id": "displayNameShort", "label": "Short Name",    "type": "string",  "description": "Compact label.",                "example": "Met"},
+                {"id": "hidden",           "label": "Is Hidden?",    "type": "boolean", "description": "Hide from player UI.",          "example": "false"},
+            ],
+        },
+        {
             "id": "resource", "title": "Local Resource", "isMulti": True,
             "description": "Local resource used by units (e.g. ammo, fuel).",
             "fields": [
@@ -234,6 +266,22 @@ SECTIONS_DATA = {
                 {"id": "xOffsetRelative", "label": "X Offset",    "type": "float",  "description": "Horizontal shift.",           "example": "0"},
                 {"id": "yOffsetRelative", "label": "Y Offset",    "type": "float",  "description": "Vertical shift.",             "example": "0"},
                 {"id": "isVisible",       "label": "Is Visible?", "type": "logic",  "description": "Condition to draw.",          "example": "if self.hp() > 0"},
+            ],
+        },
+        {
+            "id": "comment", "title": "Comment", "isMulti": True,
+            "description": "Note-only section for documentation (`comment_NAME`).",
+            "fields": [
+                {"id": "id",      "label": "Comment ID", "type": "string", "description": "Unique comment section name.", "example": "todoBalance"},
+                {"id": "text",    "label": "Comment",    "type": "string", "description": "Free text note.",               "example": "Increase hp if too weak."},
+            ],
+        },
+        {
+            "id": "template", "title": "Template Section", "isMulti": True,
+            "description": "Reusable template section (`template_NAME`) referenced by units.",
+            "fields": [
+                {"id": "id",   "label": "Template ID", "type": "string", "description": "Template section name.",     "example": "infantryBase"},
+                {"id": "text", "label": "Template Raw","type": "logic",  "description": "Raw fields for template use.", "example": "maxHp:120\nmass:40"},
             ],
         },
     ],

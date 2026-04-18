@@ -44,14 +44,19 @@ _MULTI_PREFIXES = [
     (re.compile(r"^turret_", re.I), "turrets"),
     (re.compile(r"^projectile_", re.I), "projectiles"),
     (re.compile(r"^action_", re.I), "actions"),
+    (re.compile(r"^hiddenAction_", re.I), "hiddenActions"),
     (re.compile(r"^animation_", re.I), "animations"),
     (re.compile(r"^canBuild_", re.I), "canBuilds"),
     (re.compile(r"^leg_", re.I), "legs"),
+    (re.compile(r"^arm_", re.I), "arms"),
     (re.compile(r"^attachment_", re.I), "attachments"),
     (re.compile(r"^effect_", re.I), "effects"),
     (re.compile(r"^placementRule_", re.I), "placementRules"),
+    (re.compile(r"^global_resource_", re.I), "globalResources"),
     (re.compile(r"^resource_", re.I), "resources"),
     (re.compile(r"^decal_", re.I), "decals"),
+    (re.compile(r"^comment_", re.I), "comments"),
+    (re.compile(r"^template_", re.I), "templates"),
 ]
 _SIMPLE_SECS = {"core", "graphics", "attack", "movement", "ai"}
 _INI_EXTS = {".ini", ".copyfrom", ".template"}
@@ -115,9 +120,11 @@ def _create_unit(uid: str, name: str) -> dict:
             "useAsTransport": False,
         },
         "turrets": [], "projectiles": [], "actions": [],
-        "animations": [], "canBuilds": [], "legs": [],
+        "hiddenActions": [], "animations": [], "canBuilds": [], "legs": [],
+        "arms": [],
         "attachments": [], "effects": [], "placementRules": [],
-        "resources": [], "decals": [],
+        "globalResources": [], "resources": [], "decals": [],
+        "comments": [], "templates": [],
     }
 
 
