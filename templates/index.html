@@ -1106,8 +1106,9 @@ function createUnit(id, name){
     attack:{canAttack:false,canAttackFlyingUnits:false,canAttackLandUnits:false,canAttackUnderwaterUnits:false,maxAttackRange:150},
     movement:{movementType:'LAND',moveSpeed:1.0},
     ai:{buildPriority:0.1,useAsBuilder:false,useAsTransport:false},
-    turrets:[],projectiles:[],actions:[],animations:[],canBuilds:[],
-    legs:[],attachments:[],effects:[],placementRules:[],resources:[],decals:[]
+    turrets:[],projectiles:[],actions:[],hiddenActions:[],animations:[],canBuilds:[],
+    legs:[],arms:[],attachments:[],effects:[],placementRules:[],
+    globalResources:[],resources:[],decals:[],comments:[],templates:[]
   };
 }
 
@@ -1148,13 +1149,18 @@ function renderSidebar(){
         {id:'turrets',icon:'fa-shield-alt',label:'Turrets'},
         {id:'projectiles',icon:'fa-bolt',label:'Projectiles'},
         {id:'legs',icon:'fa-spider',label:'Legs / Mechs'},
+        {id:'arms',icon:'fa-hand-paper',label:'Arms'},
         {id:'effects',icon:'fa-wand-magic-sparkles',label:'Effects'},
         {id:'decals',icon:'fa-paint-brush',label:'Decals'},
       ]},
       {label:'Logic & Data', items:[
         {id:'actions',icon:'fa-magic',label:'Actions'},
+        {id:'hiddenActions',icon:'fa-user-secret',label:'Hidden Actions'},
         {id:'animations',icon:'fa-film',label:'Animations'},
+        {id:'globalResources',icon:'fa-globe',label:'Global Resources'},
         {id:'resources',icon:'fa-coins',label:'Local Resources'},
+        {id:'comments',icon:'fa-comment',label:'Comments'},
+        {id:'templates',icon:'fa-layer-group',label:'Templates'},
       ]},
     ] : [])
   ];
@@ -1890,14 +1896,19 @@ const _MULTI_PREFIXES = [
   {re:/^turret_/i,        key:'turrets'},
   {re:/^projectile_/i,    key:'projectiles'},
   {re:/^action_/i,        key:'actions'},
+  {re:/^hiddenAction_/i,  key:'hiddenActions'},
   {re:/^animation_/i,     key:'animations'},
   {re:/^canBuild_/i,      key:'canBuilds'},
   {re:/^leg_/i,           key:'legs'},
+  {re:/^arm_/i,           key:'arms'},
   {re:/^attachment_/i,    key:'attachments'},
   {re:/^effect_/i,        key:'effects'},
   {re:/^placementRule_/i, key:'placementRules'},
+  {re:/^global_resource_/i,key:'globalResources'},
   {re:/^resource_/i,      key:'resources'},
   {re:/^decal_/i,         key:'decals'},
+  {re:/^comment_/i,       key:'comments'},
+  {re:/^template_/i,      key:'templates'},
 ];
 const _SIMPLE_SECS = ['core','graphics','attack','movement','ai'];
 
