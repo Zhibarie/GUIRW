@@ -1,0 +1,2825 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="theme-color" content="#0a1220"/>
+<title>rwGUI — Rusted Warfare Mod Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@700;900&display=swap" rel="stylesheet"/>
+<link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'"/>
+<noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/></noscript>
+<style>
+:root {
+  --bg0:#050a0f; --bg1:#0a1220; --bg2:#0f1d30; --bg3:#162640;
+  --border:#1e3a5f; --border2:#2a4d7a;
+  --accent:#00c8ff; --accent2:#ff6b1a; --accent3:#39ff14;
+  --text:#c9dff0; --text2:#7aabcc; --text3:#3d6a8a;
+  --danger:#ff3a3a; --warn:#ffa500; --ok:#39ff14;
+  --card:#0d1e33; --card2:#111f35;
+  --font-ui:'Rajdhani',sans-serif;
+  --font-mono:'Share Tech Mono',monospace;
+  --font-head:'Orbitron',monospace;
+  --radius:8px; --radius-lg:14px;
+  --sidebar:280px;
+  --transition:0.18s cubic-bezier(.4,0,.2,1);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden;-webkit-overflow-scrolling:touch}
+body{background:var(--bg0);color:var(--text);font-family:var(--font-ui);font-size:15px;display:flex;flex-direction:column;overscroll-behavior:none}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
+
+/* ═══════════════════════════════════════════
+   TOP HEADER BAR
+═══════════════════════════════════════════ */
+#top-bar{
+  display:flex;align-items:center;gap:12px;
+  height:56px;padding:0 16px;
+  padding-top:env(safe-area-inset-top);
+  background:var(--bg1);border-bottom:1px solid var(--border);
+  flex-shrink:0;z-index:100;position:relative;
+}
+#top-bar .logo{
+  font-family:var(--font-head);font-size:18px;color:var(--accent);
+  letter-spacing:.1em;white-space:nowrap;
+}
+#top-bar .logo span{color:var(--accent2);font-size:11px;display:block;letter-spacing:.25em;font-family:var(--font-mono)}
+#btn-menu-toggle{
+  display:none;background:none;border:none;color:var(--text2);
+  font-size:20px;cursor:pointer;padding:6px;
+}
+#section-title{
+  flex:1;min-width:0;
+}
+#section-title h2{font-size:15px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#section-title p{font-size:11px;color:var(--text3);font-family:var(--font-mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.top-actions{display:flex;gap:8px;align-items:center;flex-shrink:0}
+.top-actions button{
+  border:none;cursor:pointer;border-radius:var(--radius);
+  font-family:var(--font-ui);font-weight:700;font-size:12px;
+  padding:7px 14px;transition:var(--transition);display:flex;align-items:center;gap:6px;
+}
+#btn-ai{background:linear-gradient(135deg,#3730a3,#6d28d9);color:#fff}
+#btn-ai:hover{background:linear-gradient(135deg,#4338ca,#7c3aed);transform:translateY(-1px)}
+#btn-copy{background:var(--bg3);color:var(--text);border:1px solid var(--border)}
+#btn-copy:hover{background:var(--bg2);border-color:var(--accent)}
+#btn-export{background:linear-gradient(135deg,#064e3b,#065f46);color:#6ee7b7;border:1px solid #065f46}
+#btn-export:hover{background:linear-gradient(135deg,#065f46,#047857);transform:translateY(-1px)}
+#btn-code-toggle{display:none;background:var(--bg3);border:1px solid var(--border);color:var(--accent);padding:7px 12px;border-radius:var(--radius);cursor:pointer;font-size:14px}
+
+/* ═══════════════════════════════════════════
+   LAYOUT SHELL
+═══════════════════════════════════════════ */
+#shell{display:flex;flex:1;overflow:hidden}
+
+/* ═══════════════════════════════════════════
+   SIDEBAR
+═══════════════════════════════════════════ */
+#sidebar{
+  width:var(--sidebar);flex-shrink:0;
+  background:var(--bg1);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;overflow:hidden;
+  transition:transform var(--transition);
+}
+.sidebar-scroll{flex:1;overflow-y:auto;padding:12px 10px}
+.sidebar-group{margin-bottom:16px}
+.sidebar-group-label{
+  font-family:var(--font-mono);font-size:10px;color:var(--text3);
+  letter-spacing:.2em;padding:0 8px;margin-bottom:6px;
+  text-transform:uppercase;
+}
+
+/* ── Unit list items ── */
+.unit-entry{
+  display:flex;align-items:center;gap:0;
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--radius);margin-bottom:6px;overflow:hidden;
+}
+.unit-entry-btn{
+  flex:1;display:flex;align-items:center;gap:10px;
+  padding:9px 10px;background:none;border:none;
+  color:var(--text2);cursor:pointer;font-family:var(--font-ui);
+  font-size:13px;font-weight:600;text-align:left;transition:var(--transition);
+  min-width:0;
+}
+.unit-entry-btn i{color:var(--text3);font-size:13px;flex-shrink:0}
+.unit-entry-btn .unit-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.unit-entry-btn:hover{color:var(--text);background:var(--bg2)}
+.unit-entry-btn.active{color:var(--accent);background:rgba(0,200,255,.07)}
+.unit-entry.active-parent{border-color:rgba(0,200,255,.3)}
+.unit-del-btn{
+  background:none;border:none;border-left:1px solid var(--border);
+  color:var(--text3);cursor:pointer;padding:9px 9px;
+  font-size:12px;transition:var(--transition);flex-shrink:0;
+}
+.unit-del-btn:hover{color:var(--danger);background:rgba(255,58,58,.08)}
+#btn-add-unit{
+  width:100%;display:flex;align-items:center;justify-content:center;gap:8px;
+  background:none;border:1px dashed var(--border);color:var(--text3);
+  border-radius:var(--radius);padding:8px;cursor:pointer;
+  font-family:var(--font-ui);font-size:12px;font-weight:700;
+  transition:var(--transition);margin-bottom:6px;
+}
+#btn-add-unit:hover{border-color:var(--accent3);color:var(--accent3)}
+#btn-new-proj{
+  width:100%;display:flex;align-items:center;justify-content:center;gap:8px;
+  background:rgba(255,107,26,.08);border:1px solid rgba(255,107,26,.3);
+  color:var(--accent2);border-radius:var(--radius);padding:8px;cursor:pointer;
+  font-family:var(--font-ui);font-size:12px;font-weight:700;
+  transition:var(--transition);
+}
+#btn-new-proj:hover{background:rgba(255,107,26,.15)}
+
+/* ── Nav items ── */
+.nav-item{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 10px;border-radius:var(--radius);
+  background:none;border:1px solid transparent;
+  color:var(--text3);cursor:pointer;font-family:var(--font-ui);
+  font-size:13px;font-weight:600;width:100%;text-align:left;
+  transition:var(--transition);margin-bottom:2px;
+}
+.nav-item i{width:16px;text-align:center;font-size:13px;flex-shrink:0}
+.nav-item:hover{background:var(--bg2);color:var(--text2)}
+.nav-item.active{background:rgba(0,200,255,.08);color:var(--accent);border-color:rgba(0,200,255,.25)}
+.nav-item .nav-badge{
+  margin-left:auto;font-size:10px;font-family:var(--font-mono);
+  background:var(--bg3);border:1px solid var(--border);
+  color:var(--text3);padding:1px 6px;border-radius:99px;
+}
+.nav-item.active .nav-badge{background:rgba(0,200,255,.12);border-color:rgba(0,200,255,.3);color:var(--accent)}
+
+/* ═══════════════════════════════════════════
+   MAIN CONTENT
+═══════════════════════════════════════════ */
+#main-area{flex:1;display:flex;overflow:hidden;min-width:0}
+
+/* ── Form pane ── */
+#form-pane{
+  flex:1;overflow-y:auto;padding:20px;min-width:0;
+  transition:var(--transition);
+}
+.form-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;max-width:900px}
+
+/* ── Field card ── */
+.field-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px;position:relative;content-visibility:auto;contain-intrinsic-size:0 80px}
+.field-card:focus-within{border-color:rgba(0,200,255,.4);background:var(--card2)}
+.field-label{
+  font-size:11px;font-weight:700;color:var(--text3);
+  letter-spacing:.12em;text-transform:uppercase;
+  display:flex;align-items:center;gap:6px;margin-bottom:8px;
+}
+.field-label .info-btn{
+  background:none;border:none;color:var(--text3);cursor:pointer;
+  font-size:11px;padding:0;transition:var(--transition);
+}
+.field-label .info-btn:hover{color:var(--accent)}
+.field-input{
+  width:100%;background:var(--bg2);border:1px solid var(--border);
+  border-radius:6px;padding:9px 12px;color:var(--text);
+  font-family:var(--font-mono);font-size:13px;
+  transition:var(--transition);outline:none;
+}
+.field-input:focus{border-color:var(--accent);background:var(--bg0);box-shadow:0 0 0 2px rgba(0,200,255,.1)}
+.field-input::placeholder{color:var(--text3)}
+select.field-input{cursor:pointer;appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24'%3E%3Cpath fill='%237aabcc' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 10px center;padding-right:30px}
+textarea.field-input{height:90px;resize:vertical;line-height:1.5}
+
+/* boolean toggle */
+.bool-toggle{display:flex;gap:6px}
+.bool-btn{
+  flex:1;padding:9px;border-radius:6px;border:1px solid var(--border);
+  background:var(--bg2);color:var(--text3);cursor:pointer;
+  font-family:var(--font-ui);font-size:12px;font-weight:700;
+  transition:var(--transition);text-align:center;
+}
+.bool-btn.active-true{background:rgba(57,255,20,.1);border-color:rgba(57,255,20,.4);color:var(--accent3)}
+.bool-btn.active-false{background:rgba(255,58,58,.08);border-color:rgba(255,58,58,.3);color:var(--danger)}
+
+/* file input */
+.file-row{display:flex;gap:8px}
+.file-row .field-input{flex:1}
+.file-btn{
+  background:var(--bg3);border:1px solid var(--border);
+  color:var(--text2);border-radius:6px;padding:9px 12px;
+  cursor:pointer;font-size:12px;white-space:nowrap;
+  transition:var(--transition);display:flex;align-items:center;gap:6px;
+}
+.file-btn:hover{border-color:var(--accent);color:var(--accent)}
+
+/* ── Multi-section (list items) ── */
+.multi-header{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:14px;flex-wrap:wrap;gap:8px;
+}
+.multi-header h3{font-size:14px;font-weight:700;color:var(--text)}
+.multi-tabs{display:flex;gap:6px;flex-wrap:wrap}
+.multi-tab{
+  background:var(--card);border:1px solid var(--border);
+  color:var(--text3);border-radius:6px;padding:5px 12px;
+  cursor:pointer;font-size:12px;font-weight:700;
+  font-family:var(--font-ui);transition:var(--transition);
+}
+.multi-tab.active{background:rgba(0,200,255,.1);border-color:rgba(0,200,255,.4);color:var(--accent)}
+.multi-tab .del-x{margin-left:6px;color:var(--text3)}
+.multi-tab:hover .del-x{color:var(--danger)}
+#btn-add-item{
+  background:rgba(57,255,20,.06);border:1px solid rgba(57,255,20,.25);
+  color:var(--accent3);border-radius:6px;padding:5px 12px;
+  cursor:pointer;font-size:12px;font-weight:700;
+  font-family:var(--font-ui);transition:var(--transition);
+}
+#btn-add-item:hover{background:rgba(57,255,20,.12)}
+
+/* ═══════════════════════════════════════════
+   CODE PANE
+═══════════════════════════════════════════ */
+#code-pane{
+  width:340px;flex-shrink:0;
+  background:var(--bg1);border-left:1px solid var(--border);
+  display:flex;flex-direction:column;overflow:hidden;transition:var(--transition);
+}
+.code-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 14px;border-bottom:1px solid var(--border);
+  flex-shrink:0;background:var(--bg0);
+}
+.code-label{font-family:var(--font-mono);font-size:10px;color:var(--text3);letter-spacing:.2em;display:flex;align-items:center;gap:6px}
+.code-label i{color:var(--accent)}
+.code-tabs{display:flex;gap:4px}
+.code-tab-btn{
+  background:var(--bg2);border:1px solid var(--border);
+  color:var(--text3);border-radius:5px;padding:4px 10px;
+  cursor:pointer;font-size:11px;font-weight:700;
+  font-family:var(--font-mono);transition:var(--transition);
+}
+.code-tab-btn.active{background:var(--accent);border-color:var(--accent);color:var(--bg0)}
+#code-output{
+  flex:1;overflow-y:auto;padding:16px;
+  font-family:var(--font-mono);font-size:11.5px;line-height:1.7;
+  color:#7dd3fc;white-space:pre-wrap;word-break:break-all;
+}
+
+/* ═══════════════════════════════════════════
+   TOAST
+═══════════════════════════════════════════ */
+#toast{
+  position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(80px);
+  background:var(--bg1);border:1px solid var(--border2);
+  color:var(--text);padding:10px 20px;border-radius:99px;
+  font-size:13px;font-weight:600;z-index:9999;
+  transition:transform .3s cubic-bezier(.4,0,.2,1),opacity .3s;
+  opacity:0;pointer-events:none;white-space:nowrap;
+}
+#toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+#toast.ok i{color:var(--ok)}
+#toast.err i{color:var(--danger)}
+#toast.info i{color:var(--accent)}
+
+/* ═══════════════════════════════════════════
+   MODAL (generic)
+═══════════════════════════════════════════ */
+.modal-backdrop{
+  position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(4px);
+  z-index:500;display:flex;align-items:center;justify-content:center;padding:16px;
+  opacity:0;pointer-events:none;transition:opacity .2s;
+}
+/* Disable backdrop-filter blur on mobile — very expensive on mobile GPUs */
+@media(max-width:768px){
+  .modal-backdrop{backdrop-filter:none;-webkit-backdrop-filter:none}
+  /* Reduce modal backdrop padding on mobile to maximize usable space */
+  .modal-backdrop{padding:8px;align-items:stretch}
+}
+.modal-backdrop.open{opacity:1;pointer-events:all}
+.modal-box{
+  background:var(--bg1);border:1px solid var(--border2);
+  border-radius:var(--radius-lg);width:100%;max-width:520px;
+  overflow:hidden;transform:scale(.95);transition:transform .2s;
+  max-height:90vh;display:flex;flex-direction:column;
+}
+.modal-backdrop.open .modal-box{transform:scale(1)}
+.modal-head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 20px;border-bottom:1px solid var(--border);
+  background:var(--bg0);
+}
+.modal-head h3{font-size:15px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:8px}
+.modal-close{background:none;border:none;color:var(--text3);cursor:pointer;font-size:16px;padding:4px;transition:var(--transition)}
+.modal-close:hover{color:var(--text)}
+.modal-body{padding:20px;overflow-y:auto;flex:1}
+.modal-body p{font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:12px}
+
+/* AI Modal extras */
+#ai-prompt{
+  width:100%;background:var(--bg2);border:1px solid var(--border);
+  border-radius:var(--radius);padding:12px;color:var(--text);
+  font-family:var(--font-mono);font-size:13px;height:100px;
+  resize:none;outline:none;transition:var(--transition);
+}
+#ai-prompt:focus{border-color:rgba(109,40,217,.6);box-shadow:0 0 0 2px rgba(109,40,217,.15)}
+#ai-result-box{
+  background:rgba(109,40,217,.08);border:1px solid rgba(109,40,217,.3);
+  border-radius:var(--radius);padding:12px;margin-top:12px;display:none;
+}
+#ai-result-box .res-label{font-size:10px;font-weight:700;color:#a78bfa;letter-spacing:.15em;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between}
+#ai-result-code{font-family:var(--font-mono);font-size:12px;color:#c4b5fd;word-break:break-all}
+#btn-copy-ai{background:none;border:none;color:#a78bfa;cursor:pointer;font-size:13px;padding:2px;transition:var(--transition)}
+#btn-copy-ai:hover{color:#c4b5fd}
+#btn-run-ai{
+  width:100%;margin-top:12px;padding:12px;
+  background:linear-gradient(135deg,#3730a3,#6d28d9);
+  border:none;border-radius:var(--radius);color:#fff;
+  font-family:var(--font-ui);font-size:14px;font-weight:700;
+  cursor:pointer;transition:var(--transition);display:flex;align-items:center;justify-content:center;gap:8px;
+}
+#btn-run-ai:hover:not(:disabled){background:linear-gradient(135deg,#4338ca,#7c3aed);transform:translateY(-1px)}
+#btn-run-ai:disabled{opacity:.5;cursor:not-allowed}
+
+/* Confirm modal */
+#confirm-text{font-size:14px;color:var(--text2);line-height:1.6;margin-bottom:0}
+.modal-footer{display:flex;gap:10px;justify-content:flex-end;padding:16px 20px;border-top:1px solid var(--border);background:var(--bg0)}
+.btn-primary{background:var(--accent2);border:none;border-radius:var(--radius);color:#fff;padding:9px 20px;font-family:var(--font-ui);font-size:13px;font-weight:700;cursor:pointer;transition:var(--transition)}
+.btn-primary:hover{background:#ff8c3a;transform:translateY(-1px)}
+.btn-secondary{background:var(--bg3);border:1px solid var(--border);color:var(--text2);padding:9px 20px;border-radius:var(--radius);font-family:var(--font-ui);font-size:13px;font-weight:700;cursor:pointer;transition:var(--transition)}
+.btn-secondary:hover{background:var(--bg2)}
+
+/* Tooltip */
+.tooltip{position:relative;display:inline-flex}
+.tooltip-box{
+  position:absolute;bottom:calc(100% + 6px);left:0;
+  background:var(--bg0);border:1px solid var(--border2);
+  color:var(--text2);font-size:11px;line-height:1.5;
+  padding:8px 10px;border-radius:6px;width:220px;z-index:200;
+  opacity:0;pointer-events:none;transition:opacity .15s;font-family:var(--font-ui);
+}
+.tooltip:hover .tooltip-box{opacity:1}
+.tooltip-box .ex{color:var(--accent);font-family:var(--font-mono);font-size:10px;margin-top:4px;display:block}
+
+/* Sidebar overlay for mobile */
+#sidebar-overlay{
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);
+  z-index:200;
+}
+
+/* ═══════════════════════════════════════════
+   MOBILE — ≤ 768 px
+═══════════════════════════════════════════ */
+@media(max-width:768px){
+  /* GPU-friendly: no blur, reduced shadow compositing */
+  *{box-shadow:none!important}
+  .field-card{content-visibility:auto;contain-intrinsic-size:0 72px}
+  /* Lock body scroll when sidebar or code pane is open (iOS fix) */
+  body.sidebar-open,
+  body.codepane-open{overflow:hidden;position:fixed;width:100%;height:100%}
+
+  #btn-menu-toggle{display:flex;align-items:center;min-width:40px;min-height:40px;justify-content:center}
+  #btn-code-toggle{display:flex;align-items:center;min-width:40px;min-height:40px;justify-content:center}
+  #sidebar{
+    position:fixed;top:0;left:0;bottom:0;z-index:300;
+    transform:translateX(-100%);
+    padding-top:calc(56px + env(safe-area-inset-top));
+  }
+  #sidebar.open{transform:translateX(0)}
+  #sidebar-overlay.open{display:block}
+  #code-pane{
+    position:fixed;top:0;right:0;bottom:0;z-index:250;
+    width:100%;transform:translateX(100%);
+    padding-top:calc(56px + env(safe-area-inset-top));
+  }
+  #code-pane.open{transform:translateX(0)}
+  .top-actions{gap:4px}
+  .top-actions #btn-ai span,
+  .top-actions #btn-export span,
+  .top-actions #btn-copy span,
+  .top-actions #btn-import span{display:none}
+  .top-actions button{padding:8px 10px;min-height:38px;min-width:38px;justify-content:center}
+  #form-pane{padding:12px}
+  /* Single-column form grid on small screens */
+  .form-grid{grid-template-columns:1fr!important;max-width:100%!important}
+  /* Larger touch targets for interactive elements */
+  .bool-btn{padding:12px 8px;font-size:13px}
+  .multi-tab{padding:8px 14px;font-size:13px;min-height:36px;display:inline-flex;align-items:center}
+  .nav-item{padding:11px 12px;min-height:44px}
+  .unit-entry-btn{padding:12px 10px;min-height:44px}
+  .unit-del-btn,.unit-dup-btn{padding:12px 10px;min-width:44px}
+  .field-input{padding:12px 14px;font-size:14px;min-height:44px}
+  select.field-input{padding-right:36px}
+  textarea.field-input{height:100px}
+  .file-btn{padding:12px 14px;min-height:44px}
+  .btn-primary,.btn-secondary{padding:12px 20px;min-height:44px}
+  #btn-add-unit,#btn-new-proj{padding:12px 8px;min-height:44px}
+  #btn-add-item{padding:8px 14px;min-height:38px}
+  /* Toast positioned above home indicator */
+  #toast{bottom:calc(20px + env(safe-area-inset-bottom))}
+  /* Save bar safe area */
+  #save-bar{padding-bottom:calc(8px + env(safe-area-inset-bottom))}
+}
+@media(max-width:480px){
+  .form-grid{gap:10px}
+  .field-card{padding:12px}
+  .code-tab-btn{padding:6px 10px;font-size:11px;min-height:34px}
+}
+@media(max-width:380px){
+  #top-bar .logo{font-size:15px}
+  #top-bar .logo span{display:none}
+  #top-bar{gap:8px;padding:0 10px}
+  .top-actions{gap:3px}
+  .top-actions button{padding:7px 8px;min-height:36px;min-width:36px}
+}
+
+
+/* ═══════════════════════════════════════════
+   IMPORT MODAL
+═══════════════════════════════════════════ */
+.import-mode-tabs{
+  display:flex;border-bottom:1px solid var(--border);background:var(--bg0);
+  flex-shrink:0;
+}
+.import-mode-tab{
+  flex:1;padding:11px 6px;background:none;border:none;
+  border-bottom:2px solid transparent;
+  color:var(--text3);cursor:pointer;font-family:var(--font-ui);
+  font-size:12px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  transition:var(--transition);
+}
+.import-mode-tab i{font-size:13px}
+.import-mode-tab:hover{color:var(--text2);background:rgba(255,255,255,.03)}
+.import-mode-tab.active{color:var(--accent3);border-bottom-color:var(--accent3)}
+.import-panel{padding:20px;overflow-y:auto}
+.import-dropzone{
+  border:2px dashed var(--border2);border-radius:var(--radius-lg);
+  padding:24px 16px;text-align:center;
+  display:flex;flex-direction:column;align-items:center;gap:10px;
+  background:var(--bg2);transition:var(--transition);cursor:default;
+}
+.import-dropzone.drag-over{
+  border-color:var(--accent3);background:rgba(57,255,20,.04);
+}
+.import-dropzone>.dz-icon{font-size:30px;color:var(--text3)}
+.import-dropzone>.dz-title{font-size:13px;color:var(--text2);margin:0}
+.import-dropzone>.dz-or{font-size:11px;color:var(--text3)}
+.import-hint{font-size:11px;color:var(--text3);font-family:var(--font-mono);margin:0}
+.import-file-btn{
+  background:var(--bg3);border:1px solid var(--border2);color:var(--text);
+  border-radius:var(--radius);padding:8px 18px;cursor:pointer;
+  font-family:var(--font-ui);font-size:13px;font-weight:700;
+  transition:var(--transition);display:inline-flex;align-items:center;gap:6px;
+}
+.import-file-btn:hover{border-color:var(--accent3);color:var(--accent3)}
+
+/* selected-files list */
+.import-selected{
+  width:100%;margin-top:4px;
+}
+.import-selected-item{
+  display:flex;align-items:center;gap:8px;
+  padding:6px 10px;background:var(--bg1);
+  border:1px solid var(--border);border-radius:6px;margin-bottom:4px;
+  font-size:12px;font-family:var(--font-mono);color:var(--text2);
+}
+.import-selected-item i{color:var(--accent3);flex-shrink:0}
+
+/* preview box */
+.import-preview{
+  background:rgba(57,255,20,.04);border:1px solid rgba(57,255,20,.2);
+  border-radius:var(--radius);padding:14px 16px;margin-top:12px;
+}
+.import-preview .pvlabel{
+  font-size:10px;color:var(--accent3);letter-spacing:.18em;
+  font-weight:700;margin-bottom:8px;
+}
+.import-preview-row{
+  display:flex;align-items:center;gap:8px;
+  font-size:12px;color:var(--text2);margin-bottom:4px;
+  font-family:var(--font-mono);
+}
+.import-preview-row i{color:var(--text3);width:14px;text-align:center}
+.import-action-btns{
+  display:flex;gap:8px;margin-top:12px;
+}
+.btn-imp-replace{
+  flex:1;padding:10px 8px;
+  background:rgba(255,107,26,.08);border:1px solid rgba(255,107,26,.35);
+  color:var(--accent2);border-radius:var(--radius);cursor:pointer;
+  font-family:var(--font-ui);font-size:12px;font-weight:700;
+  transition:var(--transition);display:flex;align-items:center;
+  justify-content:center;gap:6px;
+}
+.btn-imp-replace:hover{background:rgba(255,107,26,.18)}
+.btn-imp-append{
+  flex:1;padding:10px 8px;
+  background:rgba(57,255,20,.07);border:1px solid rgba(57,255,20,.3);
+  color:var(--accent3);border-radius:var(--radius);cursor:pointer;
+  font-family:var(--font-ui);font-size:12px;font-weight:700;
+  transition:var(--transition);display:flex;align-items:center;
+  justify-content:center;gap:6px;
+}
+.btn-imp-append:hover{background:rgba(57,255,20,.15)}
+.import-err{
+  background:rgba(255,58,58,.07);border:1px solid rgba(255,58,58,.3);
+  border-radius:var(--radius);padding:10px 14px;margin-top:12px;
+  font-size:12px;color:var(--danger);font-family:var(--font-mono);
+}
+#btn-import{
+  background:linear-gradient(135deg,#0f2d0f,#14401a);
+  color:var(--accent3);border:1px solid rgba(57,255,20,.3);
+}
+#btn-import:hover{
+  background:linear-gradient(135deg,#14401a,#1a5421);transform:translateY(-1px);
+}
+@media(max-width:480px){
+  .import-mode-tab span{display:none}
+  .import-mode-tab{padding:12px}
+  .import-mode-tab i{font-size:16px}
+  .import-action-btns{flex-direction:column}
+}
+@media(max-width:768px){
+  .import-panel{padding:14px}
+  .import-dropzone{padding:18px 12px;gap:8px}
+  .import-file-btn{padding:12px 22px;font-size:14px;width:100%;justify-content:center}
+  .import-dropzone>.dz-title,.import-dropzone>.dz-or{font-size:12px}
+  /* On touch devices drag-and-drop typically doesn't work — de-emphasize */
+  .import-dropzone>.dz-icon{font-size:22px}
+}
+/* ── Import progress bar ── */
+.import-progress{
+  display:flex;align-items:center;gap:8px;padding:10px 14px;
+  background:rgba(57,255,20,.04);border:1px solid rgba(57,255,20,.15);
+  border-radius:var(--radius);margin-top:10px;
+  font-size:11px;font-family:var(--font-mono);color:var(--accent3);
+}
+.import-progress-bar-wrap{flex:1;height:4px;background:var(--bg3);border-radius:2px;overflow:hidden}
+.import-progress-bar{height:100%;background:var(--accent3);transition:width .25s;border-radius:2px;min-width:4px}
+.import-warn{
+  background:rgba(255,165,0,.07);border:1px solid rgba(255,165,0,.3);
+  border-radius:var(--radius);padding:8px 12px;margin-top:10px;
+  font-size:11px;color:var(--warn);font-family:var(--font-mono);
+}
+/* ═══════════════════════════════════════════
+   SCAN-LINE OVERLAY (aesthetic)
+═══════════════════════════════════════════ */
+body::after{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:9000;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.04) 2px,rgba(0,0,0,.04) 4px);
+}
+/* Disable scan-line on mobile — saves GPU compositing cost */
+@media(max-width:768px){ body::after{display:none} }
+
+
+/* ── Duplicate unit button ── */
+.unit-dup-btn{
+  background:none;border:none;border-left:1px solid var(--border);
+  color:var(--text3);cursor:pointer;padding:9px 9px;
+  font-size:11px;transition:var(--transition);flex-shrink:0;
+}
+.unit-dup-btn:hover{color:var(--accent);background:rgba(0,200,255,.08)}
+
+/* ── Save/Load project bar ── */
+#save-bar{
+  display:flex;align-items:center;gap:6px;
+  padding:8px 10px;border-top:1px solid var(--border);
+  background:var(--bg0);flex-shrink:0;
+}
+#save-bar button{
+  flex:1;display:flex;align-items:center;justify-content:center;gap:5px;
+  background:var(--bg2);border:1px solid var(--border);
+  color:var(--text2);border-radius:6px;padding:7px 6px;
+  cursor:pointer;font-family:var(--font-ui);font-size:11px;font-weight:700;
+  transition:var(--transition);
+}
+#save-bar button:hover{border-color:var(--accent);color:var(--accent);background:var(--bg3)}
+#btn-save-proj{border-color:rgba(57,255,20,.3)!important;color:var(--accent3)!important}
+#btn-save-proj:hover{background:rgba(57,255,20,.07)!important}
+#autosave-dot{
+  width:7px;height:7px;border-radius:50%;
+  background:var(--text3);flex-shrink:0;transition:background .4s;
+}
+#autosave-dot.saved{background:var(--accent3);box-shadow:0 0 4px var(--accent3)}
+
+/* ── Autosave notice on form-pane top ── */
+#autosave-banner{
+  display:none;align-items:center;gap:8px;
+  background:rgba(57,255,20,.06);border:1px solid rgba(57,255,20,.2);
+  border-radius:var(--radius);padding:8px 12px;margin-bottom:12px;
+  font-size:11px;color:var(--accent3);font-family:var(--font-mono);
+}
+#autosave-banner.show{display:flex}
+
+/* ── Asset Preview ── */
+.asset-preview-img{
+  margin-top:8px;border-radius:6px;
+  border:1px solid var(--border);
+  background:repeating-conic-gradient(#0f1d30 0% 25%, #0a1220 0% 50%) 0 0/12px 12px;
+  display:flex;align-items:center;justify-content:center;
+  overflow:hidden;max-height:100px;cursor:zoom-in;position:relative;
+}
+.asset-preview-img img{
+  max-width:100%;max-height:100px;object-fit:contain;
+  image-rendering:pixelated;
+}
+.asset-preview-img .img-size{
+  position:absolute;bottom:3px;right:5px;
+  font-size:9px;color:rgba(255,255,255,.45);font-family:var(--font-mono);
+  pointer-events:none;
+}
+.asset-preview-snd{
+  margin-top:8px;display:flex;align-items:center;gap:8px;
+}
+.btn-snd-play{
+  display:flex;align-items:center;gap:6px;
+  background:rgba(0,200,255,.07);border:1px solid rgba(0,200,255,.25);
+  color:var(--accent);border-radius:6px;padding:6px 12px;
+  cursor:pointer;font-family:var(--font-ui);font-size:12px;font-weight:700;
+  transition:var(--transition);
+}
+.btn-snd-play:hover{background:rgba(0,200,255,.15)}
+.btn-snd-play.playing{
+  background:rgba(255,107,26,.1);border-color:rgba(255,107,26,.35);color:var(--accent2);
+}
+.snd-filename{font-size:11px;color:var(--text3);font-family:var(--font-mono)}
+
+/* Lightbox */
+#asset-lightbox{
+  position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:9500;
+  display:none;align-items:center;justify-content:center;
+  flex-direction:column;gap:12px;cursor:zoom-out;
+}
+#asset-lightbox.open{display:flex}
+#asset-lightbox img{
+  max-width:90vw;max-height:82vh;object-fit:contain;
+  image-rendering:pixelated;border-radius:8px;
+  border:1px solid var(--border2);
+}
+#asset-lightbox .lb-label{
+  font-size:12px;color:var(--text3);font-family:var(--font-mono);
+}
+
+/* ── Turret Visual Editor Modal ── */
+#modal-turret-editor .modal-box{ max-width:700px }
+
+.te-layout{
+  display:flex;gap:0;height:420px;
+}
+.te-canvas-wrap{
+  flex:1;min-width:0;
+  background:var(--bg0);
+  border-right:1px solid var(--border);
+  display:flex;flex-direction:column;
+  overflow:hidden;
+}
+.te-toolbar{
+  display:flex;align-items:center;gap:6px;
+  padding:8px 12px;border-bottom:1px solid var(--border);
+  background:var(--bg1);flex-shrink:0;flex-wrap:wrap;
+}
+.te-toolbar span{
+  font-size:11px;font-family:var(--font-mono);color:var(--text3);
+}
+.te-zoom-btn{
+  background:var(--bg3);border:1px solid var(--border);
+  color:var(--text2);border-radius:5px;padding:4px 9px;
+  cursor:pointer;font-size:13px;transition:var(--transition);line-height:1;
+}
+.te-zoom-btn:hover{border-color:var(--accent);color:var(--accent)}
+#te-canvas{
+  flex:1;width:100%;cursor:crosshair;display:block;touch-action:none;
+}
+.te-sidebar{
+  width:200px;flex-shrink:0;
+  background:var(--bg1);
+  display:flex;flex-direction:column;overflow-y:auto;
+}
+.te-sidebar-head{
+  padding:10px 14px;border-bottom:1px solid var(--border);
+  font-size:10px;font-weight:700;color:var(--text3);
+  letter-spacing:.18em;font-family:var(--font-mono);
+  background:var(--bg0);flex-shrink:0;
+}
+.te-coord-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:6px 14px;border-bottom:1px solid var(--border);
+}
+.te-coord-label{
+  font-size:11px;color:var(--text3);font-family:var(--font-mono);
+}
+.te-coord-input{
+  width:70px;background:var(--bg2);border:1px solid var(--border);
+  border-radius:5px;padding:5px 8px;
+  color:var(--text);font-family:var(--font-mono);font-size:12px;
+  outline:none;text-align:right;transition:var(--transition);
+}
+.te-coord-input:focus{border-color:var(--accent);background:var(--bg0)}
+.te-legend{
+  padding:10px 14px;
+}
+.te-legend-item{
+  display:flex;align-items:center;gap:8px;
+  font-size:11px;color:var(--text2);font-family:var(--font-ui);
+  margin-bottom:6px;
+}
+.te-legend-dot{
+  width:10px;height:10px;border-radius:50%;flex-shrink:0;border:2px solid currentColor;
+}
+.te-apply-btn{
+  margin:10px 14px;padding:9px;
+  background:rgba(57,255,20,.07);border:1px solid rgba(57,255,20,.3);
+  color:var(--accent3);border-radius:var(--radius);cursor:pointer;
+  font-family:var(--font-ui);font-size:12px;font-weight:700;
+  transition:var(--transition);display:flex;align-items:center;
+  justify-content:center;gap:6px;
+}
+.te-apply-btn:hover{background:rgba(57,255,20,.15)}
+
+/* Mobile: stack vertical — compact layout */
+@media(max-width:768px){
+  /* Turret editor: full-screen, edge-to-edge on mobile */
+  #modal-turret-editor{padding:0!important;align-items:stretch!important}
+  #modal-turret-editor .modal-box{max-width:100%!important;max-height:100vh!important;height:100vh!important;height:100dvh;border-radius:0!important;display:flex!important;flex-direction:column}
+  /* Header: truncate long title so it doesn't wrap */
+  #modal-turret-editor .modal-head{padding:12px 14px;padding-top:calc(12px + env(safe-area-inset-top));flex-shrink:0;min-height:0}
+  #modal-turret-editor .modal-head h3{font-size:13px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;max-width:calc(100vw - 60px)}
+  .te-layout{flex-direction:column;height:auto;flex:1;overflow:hidden;min-height:0}
+  /* Canvas: takes remaining space but capped so sidebar is always fully visible */
+  .te-canvas-wrap{height:auto;flex:1;min-height:150px;max-height:55vh;border-right:none;border-bottom:1px solid var(--border)}
+  .te-toolbar{padding:6px 10px;gap:6px;flex-wrap:nowrap}
+  .te-zoom-btn{padding:8px 16px;font-size:16px;min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center}
+  .te-toolbar span{font-size:11px}
+  #te-canvas{flex:1;width:100%;min-height:0}
+  /* Sidebar: 2-column grid for coord rows, always fully visible */
+  .te-sidebar{width:100%;display:grid;grid-template-columns:1fr 1fr;column-gap:1px;height:auto;flex-shrink:0;overflow-y:auto;background:var(--border)}
+  .te-sidebar-head{grid-column:1/-1;padding:8px 12px;background:var(--bg0)}
+  .te-coord-row{display:flex;flex-direction:column;gap:4px;padding:8px 12px;background:var(--bg1);border-bottom:1px solid var(--border)}
+  .te-coord-label{font-size:11px}
+  .te-coord-input{width:100%;min-height:42px;font-size:15px;padding:8px;text-align:left}
+  .te-legend{display:none!important}
+  .te-apply-btn{grid-column:1/-1;margin:10px 12px;padding:13px;font-size:14px;min-height:44px;width:calc(100% - 24px);margin-bottom:calc(10px + env(safe-area-inset-bottom))}
+}
+/* Extra-compact for very small phones: keep 2-column, reduce sizes */
+@media(max-width:420px){
+  .te-canvas-wrap{min-height:130px;max-height:48vh}
+  .te-coord-row{padding:6px 10px}
+  .te-coord-input{min-height:40px;font-size:14px;padding:7px}
+  .te-toolbar{padding:5px 8px}
+  .te-zoom-btn{min-width:40px;min-height:40px;padding:6px 12px}
+  .te-apply-btn{margin-bottom:calc(8px + env(safe-area-inset-bottom))}
+}
+
+/* Visual editor button in turret section */
+.btn-visual-editor{
+  display:flex;align-items:center;gap:6px;
+  background:rgba(0,200,255,.06);border:1px solid rgba(0,200,255,.25);
+  color:var(--accent);border-radius:6px;padding:5px 12px;
+  cursor:pointer;font-family:var(--font-ui);font-size:12px;font-weight:700;
+  transition:var(--transition);flex-shrink:0;
+}
+.btn-visual-editor:hover{background:rgba(0,200,255,.15)}
+
+/* ── Item name editor bar ── */
+.item-name-bar{
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  padding:10px 20px;margin-bottom:4px;
+  background:var(--bg1);border-bottom:1px solid var(--border);
+}
+.item-name-label{
+  font-size:11px;font-family:var(--font-mono);color:var(--text3);
+  display:flex;align-items:center;gap:5px;flex-shrink:0;
+}
+.item-name-wrap{
+  display:flex;align-items:center;gap:0;
+  background:var(--bg0);border:1px solid var(--border);
+  border-radius:6px;overflow:hidden;flex:1;max-width:360px;
+  transition:border-color .15s;
+}
+.item-name-wrap:focus-within{border-color:var(--accent)}
+.item-name-prefix,.item-name-suffix{
+  padding:6px 8px;font-size:12px;font-family:var(--font-mono);
+  color:var(--text3);background:var(--bg2);white-space:nowrap;flex-shrink:0;
+}
+.item-name-input{
+  flex:1;min-width:60px;background:transparent;border:none;outline:none;
+  padding:6px 8px;font-size:13px;font-family:var(--font-mono);
+  color:var(--accent);
+}
+.item-name-input::placeholder{color:var(--text3);opacity:.7}
+.item-name-hint{
+  font-size:10px;color:var(--text3);font-family:var(--font-mono);
+  white-space:nowrap;
+}
+/* ── Empty state ── */
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;height:200px;color:var(--text3);gap:10px;font-family:var(--font-mono);font-size:12px}
+.empty-state i{font-size:32px;color:var(--border2)}
+</style>
+</head>
+<body>
+
+<!-- ══ TOP BAR ══════════════════════════════ -->
+<div id="top-bar">
+  <button id="btn-menu-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+  <div class="logo">rwGUI<span>MOD STUDIO v2.0</span></div>
+  <div id="section-title"><h2 id="header-title">Core Unit Functions</h2><p id="header-desc">Basic unit characteristics such as HP, price, and mass.</p></div>
+  <div class="top-actions">
+    <button id="btn-import" onclick="openModal('modal-import')"><i class="fas fa-file-import"></i><span> Import</span></button>
+    <button id="btn-ai" onclick="openModal('modal-ai')"><i class="fas fa-wand-magic-sparkles"></i><span> AI Helper</span></button>
+    <button id="btn-copy" onclick="copyCode()"><i class="fas fa-copy"></i><span> Copy</span></button>
+    <button id="btn-export" onclick="exportZip()"><i class="fas fa-file-zipper"></i><span> Export ZIP</span></button>
+    <button id="btn-code-toggle" onclick="toggleCodePane()"><i class="fas fa-code"></i></button>
+  </div>
+</div>
+
+<!-- ══ SHELL ════════════════════════════════ -->
+<div id="shell">
+  <div id="sidebar-overlay" onclick="closeSidebar()"></div>
+
+  <!-- ── SIDEBAR ── -->
+  <aside id="sidebar">
+    <div class="sidebar-scroll" id="sidebar-scroll"></div>
+  <div id="save-bar">
+    <div id="autosave-dot" title="Autosave status"></div>
+    <button id="btn-save-proj" onclick="saveProjectJSON()" title="Save project to file">
+      <i class="fas fa-floppy-disk"></i> Save
+    </button>
+    <button id="btn-load-proj" onclick="document.getElementById('inp-load-proj').click()" title="Load project file">
+      <i class="fas fa-folder-open"></i> Load
+      <input type="file" id="inp-load-proj" accept=".rwgui,.json" style="display:none" onchange="loadProjectJSON(this.files)">
+    </button>
+  </div>
+  </aside>
+
+  <!-- ── MAIN ── -->
+  <div id="main-area">
+    <div id="form-pane"><div id="autosave-banner"><i class="fas fa-cloud-arrow-down"></i> Project restored from autosave</div><div id="form-content" class="form-grid"></div></div>
+    <div id="code-pane">
+      <div class="code-header">
+        <div class="code-label"><i class="fas fa-terminal"></i> GENERATED INI</div>
+        <div class="code-tabs">
+          <button class="code-tab-btn active" id="ctab-unit"   onclick="setCodeTab('unit')">unit.ini</button>
+          <button class="code-tab-btn"        id="ctab-manifest" onclick="setCodeTab('manifest')">mod-info</button>
+        </div>
+      </div>
+      <pre id="code-output"># Made using rwGUI\n</pre>
+    </div>
+  </div>
+</div>
+
+<!-- ══ TOAST ════════════════════════════════ -->
+<div id="toast"><i class="fas fa-check-circle"></i> <span id="toast-msg"></span></div>
+
+<!-- ══ AI MODAL ════════════════════════════ -->
+<div class="modal-backdrop" id="modal-ai">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h3><i class="fas fa-wand-magic-sparkles" style="color:#a78bfa"></i> Logic AI Helper</h3>
+      <button class="modal-close" onclick="closeModal('modal-ai')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <p>Describe a condition to generate a <code style="color:var(--accent);font-family:var(--font-mono)">LogicBoolean</code> expression for unit actions.</p>
+      <textarea id="ai-prompt" placeholder="e.g. Trigger when health is below 30% and unit is in water..."></textarea>
+      <div id="ai-result-box">
+        <div class="res-label">SUGGESTED CODE <button id="btn-copy-ai" onclick="copyAiResult()"><i class="fas fa-copy"></i></button></div>
+        <div id="ai-result-code"></div>
+      </div>
+      <button id="btn-run-ai" onclick="runAI()"><i class="fas fa-bolt"></i> Generate Logic</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ CONFIRM MODAL ═══════════════════════ -->
+<div class="modal-backdrop" id="modal-confirm">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h3><i class="fas fa-triangle-exclamation" style="color:var(--warn)"></i> Confirm Action</h3>
+      <button class="modal-close" onclick="closeModal('modal-confirm')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body"><p id="confirm-text"></p></div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeModal('modal-confirm')">Cancel</button>
+      <button class="btn-primary" id="confirm-ok-btn">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ TOOLTIP MODAL (field info) ══════════ -->
+<div class="modal-backdrop" id="modal-info">
+  <div class="modal-box" style="max-width:380px">
+    <div class="modal-head">
+      <h3 id="info-title" style="color:var(--accent)">Field Info</h3>
+      <button class="modal-close" onclick="closeModal('modal-info')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <p id="info-desc"></p>
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:10px;margin-top:4px">
+        <div style="font-size:10px;color:var(--text3);letter-spacing:.15em;margin-bottom:4px">EXAMPLE</div>
+        <code id="info-example" style="font-family:var(--font-mono);font-size:12px;color:var(--accent)"></code>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══ IMPORT MODAL ════════════════════════ -->
+<div class="modal-backdrop" id="modal-import">
+  <div class="modal-box" style="max-width:580px">
+    <div class="modal-head" style="flex-shrink:0">
+      <h3><i class="fas fa-file-import" style="color:var(--accent3)"></i> Import Mod Files</h3>
+      <button class="modal-close" onclick="closeModal('modal-import')"><i class="fas fa-times"></i></button>
+    </div>
+
+    <!-- mode selector tabs -->
+    <div class="import-mode-tabs">
+      <button class="import-mode-tab active" data-mode="zip" onclick="setImportMode('zip')">
+        <i class="fas fa-file-zipper"></i><span>ZIP / RWMOD</span>
+      </button>
+      <button class="import-mode-tab" data-mode="ini" onclick="setImportMode('ini')">
+        <i class="fas fa-file-code"></i><span>INI Files</span>
+      </button>
+      <button class="import-mode-tab" data-mode="folder" onclick="setImportMode('folder')">
+        <i class="fas fa-folder-open"></i><span>Folder Scan</span>
+      </button>
+    </div>
+
+    <!-- ── ZIP / RWMOD panel ── -->
+    <div class="import-panel" id="impanel-zip">
+      <div class="import-dropzone" id="dz-zip"
+           ondragover="dzOver(event,'dz-zip')" ondragleave="dzLeave('dz-zip')"
+           ondrop="dzDrop(event,'zip')">
+        <i class="fas fa-file-zipper dz-icon"></i>
+        <p class="dz-title">Drop <b>.zip</b> or <b>.rwmod</b> file here</p>
+        <span class="dz-or">— or —</span>
+        <label class="import-file-btn">
+          <i class="fas fa-folder-open"></i> Browse File
+          <input type="file" id="inp-zip" accept=".zip,.rwmod" style="display:none"
+                 onchange="handleImportZip(this.files)">
+        </label>
+        <p class="import-hint">Reads mod-info.txt + all unit .ini files inside (max 300 units, 80 assets)</p>
+      </div>
+      <div id="imp-result-zip"></div>
+    </div>
+
+    <!-- ── INI files panel ── -->
+    <div class="import-panel" id="impanel-ini" style="display:none">
+      <div class="import-dropzone" id="dz-ini"
+           ondragover="dzOver(event,'dz-ini')" ondragleave="dzLeave('dz-ini')"
+           ondrop="dzDrop(event,'ini')">
+        <i class="fas fa-file-code dz-icon"></i>
+        <p class="dz-title">Drop <b>.ini</b>, <b>.copyfrom</b>, or <b>.template</b> files</p>
+        <span class="dz-or">— or —</span>
+        <label class="import-file-btn">
+          <i class="fas fa-files"></i> Browse Files
+          <input type="file" id="inp-ini" accept=".ini,.copyfrom,.template,.png,.jpg,.ogg,.wav,.mp3" multiple style="display:none"
+                 onchange="handleImportIni(this.files)">
+        </label>
+        <p class="import-hint">Each .ini becomes a unit — select multiple files at once (max 300 units)</p>
+      </div>
+      <div id="imp-result-ini"></div>
+    </div>
+
+    <!-- ── Folder scan panel ── -->
+    <div class="import-panel" id="impanel-folder" style="display:none">
+      <div class="import-dropzone" id="dz-folder"
+           ondragover="dzOver(event,'dz-folder')" ondragleave="dzLeave('dz-folder')"
+           ondrop="dzDrop(event,'folder')">
+        <i class="fas fa-folder-open dz-icon"></i>
+        <p class="dz-title">Select your mod folder to scan</p>
+        <span class="dz-or">— or —</span>
+        <label class="import-file-btn">
+          <i class="fas fa-folder-open"></i> Choose Folder
+          <input type="file" id="inp-folder" webkitdirectory multiple style="display:none"
+                 onchange="handleImportFolder(this.files)">
+        </label>
+        <p class="import-hint">Finds mod-info.txt + all .ini/.copyfrom/.template recursively (desktop browser recommended for folder mode)</p>
+      </div>
+      <div id="imp-result-folder"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════
+//  UTILS (must be first — used by everything below)
+// ══════════════════════════════════════════
+function escHtml(s){
+  if(s === null || s === undefined) return '';
+  return String(s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+// ── XHR upload with real progress bar ────
+// Sends FormData to url, updates resultEl with a live progress bar.
+// Returns a Promise resolving to parsed JSON response.
+function _uploadWithProgress(url, formData, resultEl){
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', url);
+
+    xhr.upload.addEventListener('progress', e => {
+      if(!e.lengthComputable || !resultEl) return;
+      const pct = Math.round(e.loaded / e.total * 100);
+      resultEl.innerHTML = `<div class="import-progress">
+        <span>Uploading… ${pct}%</span>
+        <div class="import-progress-bar-wrap">
+          <div class="import-progress-bar" style="width:${pct}%"></div>
+        </div>
+      </div>`;
+    });
+
+    xhr.onload = () => {
+      let body;
+      try { body = JSON.parse(xhr.responseText); } catch { body = {error:'Invalid server response'}; }
+      if(xhr.status >= 200 && xhr.status < 300) resolve(body);
+      else reject(new Error(body.error || `HTTP ${xhr.status}`));
+    };
+    xhr.onerror  = () => reject(new Error('Network error — is Flask running?'));
+    xhr.onabort  = () => reject(new Error('Upload cancelled'));
+    xhr.send(formData);
+  });
+}
+
+// Merge server response into app state after a successful import
+function _applyServerImport(containerId, data, label){
+  Object.assign(assetStore, data.assets || {});
+  renderImportPreview(containerId, {
+    units:      data.units    || [],
+    modInfo:    data.modInfo  || null,
+    warnings:   data.warnings || [],
+    assetCount: data.assetCount || 0,
+  }, label);
+}
+
+// ══════════════════════════════════════════
+//  DATA (injected from Flask)
+// ══════════════════════════════════════════
+const SECTIONS_DATA = {{ sections_data|safe }};
+const MOD_INFO_SEC  = SECTIONS_DATA.modInfoSection;
+const MOD_SECS      = SECTIONS_DATA.modSections;
+const MULTI_SECS    = SECTIONS_DATA.multiSections;
+const ALL_SECS      = [...MOD_SECS, ...MULTI_SECS];
+
+// Derived lookup: sectionId → metadata
+const SEC_MAP = Object.fromEntries(
+  [MOD_INFO_SEC, ...ALL_SECS].map(s => [s.id, s])
+);
+
+// Field info registry — avoids apostrophes/quotes inside onclick attributes
+// Key: "secId:fieldId"  Value: {label, description, example}
+const FIELD_REGISTRY = {};
+[MOD_INFO_SEC, ...ALL_SECS].forEach(sec => {
+  sec.fields.forEach(f => {
+    FIELD_REGISTRY[`${sec.id}:${f.id}`] = {
+      label: f.label, description: f.description, example: f.example
+    };
+  });
+});
+
+// ══════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════
+let state = {
+  activeUnitId:  'unit_0',
+  activeView:    'core',   // section id or 'mod_info'
+  codeTab:       'unit',   // derived from activeView — no separate state needed
+  modInfo: {
+    title:'New Project', description:'A Rusted Warfare Mod.', tags:'units',
+    minVersion:'1.15', id:'com.user.mod', requiredMods:'', requiredModsMessage:''
+  },
+  units: [createUnit('unit_0','Unit1')],
+  multiActiveItem: {}, // sectionId -> activeIndex
+};
+
+// Asset store — filename → dataURL (NOT persisted to autosave)
+const assetStore = {};
+
+function createUnit(id, name){
+  return {
+    id, filename: name.endsWith('.ini') ? name : name + '.ini',
+    core:{name,maxHp:100,mass:100,radius:15,isBio:false,isBuilder:false},
+    graphics:{image:'unit.png',total_frames:1},
+    attack:{canAttack:false,canAttackFlyingUnits:false,canAttackLandUnits:false,canAttackUnderwaterUnits:false,maxAttackRange:150},
+    movement:{movementType:'LAND',moveSpeed:1.0},
+    ai:{buildPriority:0.1,useAsBuilder:false,useAsTransport:false},
+    turrets:[],projectiles:[],actions:[],animations:[],canBuilds:[],
+    legs:[],attachments:[],effects:[],placementRules:[],resources:[],decals:[]
+  };
+}
+
+// Section id → unit array key  (fixes the redundant ternary bug from original)
+function multiKey(sectionId){
+  return sectionId + 's';  // canBuild→canBuilds, placementRule→placementRules, etc.
+}
+
+function activeUnit(){
+  return state.units.find(u => u.id === state.activeUnitId) || state.units[0];
+}
+
+function isModInfo(){ return state.activeView === 'mod_info'; }
+
+// ══════════════════════════════════════════
+//  SIDEBAR RENDER
+// ══════════════════════════════════════════
+function renderSidebar(){
+  const el = document.getElementById('sidebar-scroll');
+  const isModInfoView = isModInfo();
+
+  const groups = [
+    {label:'Project', items: buildProjectItems()},
+    ...(!isModInfoView ? [
+      {label:'Base Config', items:[
+        {id:'core',icon:'fa-microchip',label:'Core'},
+        {id:'graphics',icon:'fa-image',label:'Graphics'},
+        {id:'attack',icon:'fa-crosshairs',label:'Attack'},
+        {id:'movement',icon:'fa-truck',label:'Movement'},
+        {id:'ai',icon:'fa-brain',label:'AI Logic'},
+      ]},
+      {label:'Logistics', items:[
+        {id:'canBuilds',icon:'fa-list-ul',label:'Build Menu'},
+        {id:'attachments',icon:'fa-link',label:'Attachments'},
+        {id:'placementRules',icon:'fa-draw-polygon',label:'Placement Rules'},
+      ]},
+      {label:'Cosmetics', items:[
+        {id:'turrets',icon:'fa-shield-alt',label:'Turrets'},
+        {id:'projectiles',icon:'fa-bolt',label:'Projectiles'},
+        {id:'legs',icon:'fa-spider',label:'Legs / Mechs'},
+        {id:'effects',icon:'fa-wand-magic-sparkles',label:'Effects'},
+        {id:'decals',icon:'fa-paint-brush',label:'Decals'},
+      ]},
+      {label:'Logic & Data', items:[
+        {id:'actions',icon:'fa-magic',label:'Actions'},
+        {id:'animations',icon:'fa-film',label:'Animations'},
+        {id:'resources',icon:'fa-coins',label:'Local Resources'},
+      ]},
+    ] : [])
+  ];
+
+  let html = '';
+  groups.forEach(g => {
+    if(g.raw){ html += g.raw; return; }
+    html += `<div class="sidebar-group"><div class="sidebar-group-label">${g.label}</div>`;
+    g.items.forEach(item => {
+      if(item.raw){ html += item.raw; return; }
+      const active = !isModInfoView && item.id === state.activeView ? 'active' : '';
+      // count badge for multi-sections
+      const sec = MULTI_SECS.find(s => multiKey(s.id) === item.id);
+      let badge = '';
+      if(sec && !isModInfoView){
+        const count = (activeUnit()[multiKey(sec.id)] || []).length;
+        badge = `<span class="nav-badge">${count}</span>`;
+      }
+      html += `<button class="nav-item ${active}" onclick="setView('${item.id}')">
+        <i class="fas ${item.icon}"></i>${item.label}${badge}
+      </button>`;
+    });
+    html += `</div>`;
+  });
+
+  el.innerHTML = html;
+}
+
+function buildProjectItems(){
+  const unitHtml = state.units.map(u => {
+    const isActive = u.id === state.activeUnitId && !isModInfo();
+    return `<div class="unit-entry ${isActive ? 'active-parent' : ''}">
+      <button class="unit-entry-btn ${isActive ? 'active' : ''}" onclick="selectUnit('${u.id}')">
+        <i class="fas fa-robot"></i>
+        <span class="unit-name">${escHtml(u.core?.name || u.filename)}</span>
+      </button>
+      <button class="unit-dup-btn" onclick="duplicateUnit('${u.id}')" title="Duplicate unit">
+        <i class="fas fa-copy"></i>
+      </button>
+      <button class="unit-del-btn" onclick="deleteUnit('${u.id}')" title="Delete unit">
+        <i class="fas fa-xmark"></i>
+      </button>
+    </div>`;
+  }).join('');
+
+  const modBtn = `<button class="nav-item ${isModInfo() ? 'active' : ''}" onclick="setView('mod_info')">
+    <i class="fas fa-file-invoice"></i>Mod Manifest
+  </button>`;
+
+  const addBtn = `<button id="btn-add-unit" onclick="addUnit()"><i class="fas fa-plus"></i> Add Unit</button>`;
+  const newBtn = `<button id="btn-new-proj" onclick="newProject()"><i class="fas fa-file-circle-plus"></i> New Project</button>`;
+
+  return [{raw: modBtn + unitHtml + addBtn + newBtn}];
+}
+
+// ══════════════════════════════════════════
+//  VIEW / NAVIGATION
+// ══════════════════════════════════════════
+function setView(sectionId){
+  state.activeView = sectionId;
+  // Code tab is derived — no setState needed
+  state.codeTab = isModInfo() ? 'manifest' : 'unit';
+  renderSidebar();
+  renderForm();
+  renderCode();
+  updateHeader();
+  closeSidebar();
+}
+
+function selectUnit(id){
+  state.activeUnitId = id;
+  if(isModInfo()) state.activeView = 'core';
+  renderSidebar();
+  renderForm();
+  renderCode();
+  updateHeader();
+}
+
+function setCodeTab(tab){
+  state.codeTab = tab;
+  document.getElementById('ctab-unit').classList.toggle('active', tab==='unit');
+  document.getElementById('ctab-manifest').classList.toggle('active', tab==='manifest');
+  renderCode();
+}
+
+function updateHeader(){
+  const sec = isModInfo() ? MOD_INFO_SEC : SEC_MAP[state.activeView] || SEC_MAP[MULTI_SECS.find(s=>multiKey(s.id)===state.activeView)?.id];
+  document.getElementById('header-title').textContent = sec ? sec.title : state.activeView;
+  document.getElementById('header-desc').textContent  = sec ? sec.description : '';
+}
+
+// ══════════════════════════════════════════
+//  FORM RENDER
+// ══════════════════════════════════════════
+function renderForm(){
+  const container = document.getElementById('form-content');
+  const unit = activeUnit();
+
+  if(isModInfo()){
+    container.className = 'form-grid';
+    container.innerHTML = MOD_INFO_SEC.fields.map(f => fieldCardHtml(f, state.modInfo[f.id], 'mod_info')).join('');
+    attachFieldListeners(container, MOD_INFO_SEC.fields, 'mod_info');
+    return;
+  }
+
+  // Find section — could be MOD_SECS or MULTI_SECS
+  const simpleSec = MOD_SECS.find(s => s.id === state.activeView);
+  if(simpleSec){
+    container.className = 'form-grid';
+    const data = unit[simpleSec.id] || {};
+    container.innerHTML = simpleSec.fields.map(f => fieldCardHtml(f, data[f.id], simpleSec.id)).join('');
+    attachFieldListeners(container, simpleSec.fields, simpleSec.id);
+    return;
+  }
+
+  // Multi section
+  const multiSec = MULTI_SECS.find(s => multiKey(s.id) === state.activeView);
+  if(multiSec){
+    renderMultiSection(container, multiSec, unit);
+    return;
+  }
+
+  container.innerHTML = `<div class="empty-state"><i class="fas fa-triangle-exclamation"></i><span>Unknown section</span></div>`;
+}
+
+function renderMultiSection(container, sec, unit){
+  const key   = multiKey(sec.id);
+  const items = unit[key] || [];
+  let activeIdx = state.multiActiveItem[sec.id] ?? 0;
+  if(activeIdx >= items.length) activeIdx = items.length - 1;
+  state.multiActiveItem[sec.id] = activeIdx;
+
+  container.className = '';
+  container.style.padding = '0';
+
+  const tabs = items.map((item, i) => {
+    const label = item.id || item.name || `${sec.title} ${i+1}`;
+    return `<button class="multi-tab ${i===activeIdx?'active':''}" onclick="setMultiTab(${i})">
+      ${escHtml(label)}
+      <span class="del-x" onclick="event.stopPropagation();deleteMultiItem(${i})">×</span>
+    </button>`;
+  }).join('');
+
+  const addBtn = `<button id="btn-add-item" onclick="addMultiItem()"><i class="fas fa-plus"></i> Add ${sec.title}</button>`;
+
+  let fieldsHtml = '';
+  if(items.length === 0){
+    fieldsHtml = `<div class="empty-state"><i class="fas fa-layer-group"></i><span>No ${sec.title.toLowerCase()}s yet — click Add to create one</span></div>`;
+  } else {
+    const item = items[activeIdx] || {};
+    // Name editor for sections where [section_NAME] naming matters
+    const _nameEditorSecs = ['turret','projectile','action','attachment','effect'];
+    const _showNameEd = _nameEditorSecs.includes(sec.id);
+    const _fallback   = String(activeIdx + 1);
+    const _curName    = item.id || '';
+    const _nameEditor = _showNameEd ? `
+      <div class="item-name-bar">
+        <span class="item-name-label"><i class="fas fa-tag"></i> Section name</span>
+        <div class="item-name-wrap">
+          <span class="item-name-prefix">[${sec.id}_</span>
+          <input class="item-name-input" id="inp-item-name-${activeIdx}"
+            type="text" spellcheck="false"
+            value="${escHtml(_curName)}"
+            placeholder="${_fallback}"
+            oninput="setItemName(${activeIdx}, this.value)"
+          >
+          <span class="item-name-suffix">]</span>
+        </div>
+        <span class="item-name-hint">Blank = number (${_fallback})</span>
+      </div>` : '';
+    fieldsHtml = _nameEditor + `<div class="form-grid" style="max-width:900px">${sec.fields.map(f => fieldCardHtml(f, item[f.id], sec.id+'|'+activeIdx)).join('')}</div>`;
+  }
+
+  // Visual editor button for turret section only
+  const visualEditorBtn = (sec.id === 'turret' && items.length > 0)
+    ? `<button class="btn-visual-editor" onclick="openTurretEditor(${activeIdx})">
+         <i class="fas fa-crosshairs"></i> Visual Editor
+       </button>` : '';
+
+  container.innerHTML = `
+    <div style="padding:20px">
+      <div class="multi-header">
+        <h3>${sec.title}s</h3>
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+          <div class="multi-tabs">${tabs}</div>${addBtn}${visualEditorBtn}
+        </div>
+      </div>
+      ${fieldsHtml}
+    </div>`;
+
+  if(items.length > 0){
+    const grid = container.querySelector('.form-grid');
+    if(grid) attachFieldListeners(grid, sec.fields, sec.id+'|'+activeIdx);
+  }
+}
+
+function setMultiTab(i){
+  const sec = MULTI_SECS.find(s => multiKey(s.id) === state.activeView);
+  if(!sec) return;
+  state.multiActiveItem[sec.id] = i;
+  renderForm();
+}
+
+// Rename a multi-item (sets item.id → changes [section_NAME] in INI output)
+function setItemName(idx, val){
+  const sec = MULTI_SECS.find(s => multiKey(s.id) === state.activeView);
+  if(!sec) return;
+  const unit = activeUnit();
+  const key  = multiKey(sec.id);
+  if(!unit[key]?.[idx]) return;
+  const clean = val.trim().replace(/[\[\]\s]/g, '');  // strip brackets/spaces
+  unit[key][idx].id = clean || undefined;
+  // Re-render just the tab strip so label updates, without losing input focus
+  const tabsWrap = document.querySelector('.multi-tabs');
+  if(tabsWrap){
+    const items2 = unit[key];
+    const activeIdx2 = state.multiActiveItem[sec.id] ?? 0;
+    tabsWrap.innerHTML = items2.map((it, i) => {
+      const lbl = it.id || (i + 1);
+      return `<button class="multi-tab ${i===activeIdx2?'active':''}" onclick="setMultiTab(${i})">
+        ${escHtml(String(lbl))}
+        <span class="del-x" onclick="event.stopPropagation();deleteMultiItem(${i})">×</span>
+      </button>`;
+    }).join('');
+  }
+  renderCode();
+}
+
+function addMultiItem(){
+  const sec = MULTI_SECS.find(s => multiKey(s.id) === state.activeView);
+  if(!sec) return;
+  const key = multiKey(sec.id);
+  const unit = activeUnit();
+  if(!unit[key]) unit[key] = [];
+  const newItem = {};
+  sec.fields.forEach(f => { if(f.defaultValue !== undefined) newItem[f.id] = f.defaultValue; });
+  unit[key].push(newItem);
+  state.multiActiveItem[sec.id] = unit[key].length - 1;
+  renderSidebar();
+  renderForm();
+  renderCode();
+}
+
+function deleteMultiItem(i){
+  const sec = MULTI_SECS.find(s => multiKey(s.id) === state.activeView);
+  if(!sec) return;
+  const key = multiKey(sec.id);
+  const unit = activeUnit();
+  unit[key].splice(i, 1);
+  if(state.multiActiveItem[sec.id] >= unit[key].length)
+    state.multiActiveItem[sec.id] = Math.max(0, unit[key].length - 1);
+  renderSidebar();
+  renderForm();
+  renderCode();
+}
+
+// ══════════════════════════════════════════
+//  FIELD CARD HTML
+// ══════════════════════════════════════════
+function fieldCardHtml(f, value, sectionKey){
+  const v   = value ?? (f.defaultValue ?? '');
+  // safe id: replace non-alphanumeric with _
+  const safeKey = sectionKey.replace(/[^a-zA-Z0-9_]/g,'_');
+  const id  = `field_${safeKey}_${f.id}`;
+  // registry key uses base section (strip |index suffix for multi-sections)
+  const baseSec = sectionKey.includes('|') ? sectionKey.split('|')[0] : sectionKey;
+  const infoKey = escHtml(`${baseSec}:${f.id}`);
+  let input = '';
+
+  if(f.type === 'boolean'){
+    const isTrue = v === true || v === 'true';
+    // store section+field on the parent wrapper, not on each button
+    input = `<div class="bool-toggle"
+        data-section="${escHtml(sectionKey)}" data-field="${escHtml(f.id)}">
+      <button class="bool-btn ${isTrue?'active-true':''}"
+          data-val="true" onclick="setBoolFromBtn(this)">
+        <i class="fas fa-check"></i> True
+      </button>
+      <button class="bool-btn ${!isTrue?'active-false':''}"
+          data-val="false" onclick="setBoolFromBtn(this)">
+        <i class="fas fa-times"></i> False
+      </button>
+    </div>`;
+  } else if(f.type === 'enum'){
+    const opts = (f.options||[]).map(o =>
+      `<option value="${escHtml(o)}" ${o==v?'selected':''} >${escHtml(o)}</option>`
+    ).join('');
+    input = `<select class="field-input" id="${id}"
+      data-section="${escHtml(sectionKey)}" data-field="${escHtml(f.id)}">
+      <option value="">-- select --</option>${opts}
+    </select>`;
+  } else if(f.type === 'logic'){
+    input = `<textarea class="field-input" id="${id}"
+      data-section="${escHtml(sectionKey)}" data-field="${escHtml(f.id)}"
+      placeholder="${escHtml(f.example)}">${escHtml(v)}</textarea>`;
+  } else if(f.type === 'file' || f.type === 'sound'){
+    const icon   = f.type === 'sound' ? 'fa-volume-up' : 'fa-folder-open';
+    const accept = f.type === 'sound' ? 'audio/*' : 'image/*';
+    // Asset preview — look up dataURL from assetStore
+    const assetKey = String(v).trim();
+    let previewHtml = '';
+    if(f.type === 'file' && assetStore[assetKey]){
+      previewHtml = `<div class="asset-preview-img"
+          onclick="openLightbox('${escHtml(assetKey)}')">
+        <img src="${assetStore[assetKey]}" alt="${escHtml(assetKey)}"/>
+        <span class="img-size">${escHtml(assetKey)}</span>
+      </div>`;
+    } else if(f.type === 'sound' && assetStore[assetKey]){
+      previewHtml = `<div class="asset-preview-snd">
+        <button class="btn-snd-play" id="snd_${id}"
+            onclick="toggleSound('${escHtml(assetKey)}','snd_${id}')">
+          <i class="fas fa-play"></i> Play
+        </button>
+        <span class="snd-filename">${escHtml(assetKey)}</span>
+      </div>`;
+    }
+    input = `<div class="file-row">
+      <input class="field-input" id="${id}" type="text"
+        data-section="${escHtml(sectionKey)}" data-field="${escHtml(f.id)}"
+        placeholder="${escHtml(f.example)}" value="${escHtml(v)}"/>
+      <label class="file-btn"><i class="fas ${icon}"></i>
+        <input type="file" style="display:none" accept="${accept}"
+          data-target="${id}"
+          data-section="${escHtml(sectionKey)}" data-field="${escHtml(f.id)}"
+          onchange="onFileSelect(this)"/>
+      </label>
+    </div>${previewHtml}`;
+  } else {
+    const t    = (f.type === 'number' || f.type === 'float') ? 'number' : 'text';
+    const step = f.type === 'float' ? ' step="0.01"' : '';
+    input = `<input class="field-input" id="${id}" type="${t}"${step}
+      data-section="${escHtml(sectionKey)}" data-field="${escHtml(f.id)}"
+      placeholder="${escHtml(f.example)}" value="${escHtml(v)}"/>`;
+  }
+
+  return `<div class="field-card">
+    <div class="field-label">
+      ${escHtml(f.label)}
+      <button class="info-btn"
+        data-info-key="${infoKey}"
+        onclick="showFieldInfo(this.dataset.infoKey)" title="Info">
+        <i class="fas fa-circle-info"></i>
+      </button>
+    </div>
+    ${input}
+  </div>`;
+}
+
+function attachFieldListeners(container, fields, sectionKey){
+  fields.forEach(f => {
+    if(f.type === 'boolean') return; // handled via onclick
+    const id = `field_${sectionKey}_${f.id}`;
+    const el = container.querySelector(`#${id}`);
+    if(!el) return;
+    el.addEventListener('input', () => updateField(sectionKey, f.id, el.value));
+    el.addEventListener('change', () => updateField(sectionKey, f.id, el.value));
+  });
+}
+
+function updateField(sectionKey, fieldId, value){
+  // sectionKey is either 'mod_info', a simple section id, or 'multiId|index'
+  if(sectionKey === 'mod_info'){
+    state.modInfo[fieldId] = value;
+  } else if(sectionKey.includes('|')){
+    const [secId, idxStr] = sectionKey.split('|');
+    const idx = parseInt(idxStr);
+    const key = multiKey(secId);
+    const unit = activeUnit();
+    if(!unit[key]) unit[key] = [];
+    if(!unit[key][idx]) unit[key][idx] = {};
+    unit[key][idx][fieldId] = value;
+    // Refresh sidebar if id/name field changed (affects tab labels)
+    if(fieldId === 'id' || fieldId === 'name') renderSidebar();
+  } else {
+    const unit = activeUnit();
+    if(!unit[sectionKey]) unit[sectionKey] = {};
+    unit[sectionKey][fieldId] = value;
+    // Refresh sidebar if unit name changed
+    if(sectionKey === 'core' && fieldId === 'name'){
+      unit.filename = value.endsWith('.ini') ? value : value + '.ini';
+      renderSidebar();
+    }
+  }
+  renderCode();
+}
+
+// Reads section+field from the parent .bool-toggle wrapper — no string args
+function setBoolFromBtn(btn){
+  const wrapper = btn.parentElement;
+  const sectionKey = wrapper.dataset.section;
+  const fieldId    = wrapper.dataset.field;
+  const val        = btn.dataset.val === 'true';
+  updateField(sectionKey, fieldId, val);
+  wrapper.querySelectorAll('.bool-btn').forEach(b => {
+    b.classList.remove('active-true','active-false');
+    if(b.dataset.val === 'true')  b.classList.toggle('active-true',  val);
+    if(b.dataset.val === 'false') b.classList.toggle('active-false', !val);
+  });
+}
+
+// Reads target id + section + field from data attributes — no positional string args
+function onFileSelect(input){
+  const file = input.files?.[0];
+  if(!file) return;
+  const textEl = document.getElementById(input.dataset.target);
+  if(textEl) textEl.value = file.name;
+  updateField(input.dataset.section, input.dataset.field, file.name);
+}
+
+// ══════════════════════════════════════════
+//  INI GENERATION  (fixes: removed redundant ternary)
+// ══════════════════════════════════════════
+function genModInfoIni(){
+  let out = '[mod]\n';
+  Object.entries(state.modInfo).forEach(([k,v]) => {
+    if(v !== undefined && v !== '') out += `${k}: ${v}\n`;
+  });
+  return out;
+}
+
+function genUnitIni(unit){
+  if(!unit) return '';
+  let out = '# Made using rwGUI\n\n';
+
+  MOD_SECS.forEach(sec => {
+    out += `[${sec.id}]\n`;
+    const data = unit[sec.id] || {};
+    Object.entries(data).forEach(([k,v]) => {
+      if(v !== undefined && v !== '') out += `${k}: ${v}\n`;
+    });
+    out += '\n';
+  });
+
+  MULTI_SECS.forEach(sec => {
+    const list = unit[multiKey(sec.id)] || [];
+    list.forEach((item, i) => {
+      // Header name logic (kept identical to original behaviour)
+      let header;
+      if(sec.id === 'leg')        header = `leg_${i+1}`;
+      else if(sec.id === 'attachment') header = `attachment_${item.id || i+1}`;
+      else                         header = `${sec.id}_${item.id || i+1}`;
+      out += `[${header}]\n`;
+      Object.entries(item).forEach(([k,v]) => {
+        if(k === 'id') return;
+        if(v === undefined || v === '') return;
+        if(k === 'Keyframes') out += `${v}\n`;
+        else out += `${k}: ${v}\n`;
+      });
+      out += '\n';
+    });
+  });
+  return out;
+}
+
+function renderCode(){
+  const tab = isModInfo() ? 'manifest' : state.codeTab;
+  setCodeTab(tab);
+  const text = tab === 'manifest' ? genModInfoIni() : genUnitIni(activeUnit());
+  document.getElementById('code-output').textContent = text;
+  scheduleAutosave();
+}
+
+// ══════════════════════════════════════════
+//  UNIT MANAGEMENT
+// ══════════════════════════════════════════
+function addUnit(){
+  const name = promptInline('Unit name:', 'NewUnit');
+  if(!name) return;
+  const id = 'unit_' + Date.now();
+  state.units.push(createUnit(id, name));
+  state.activeUnitId = id;
+  state.activeView = 'core';
+  renderSidebar();
+  renderForm();
+  renderCode();
+  updateHeader();
+}
+
+function deleteUnit(id){
+  if(state.units.length <= 1){ showToast('Cannot delete the last unit', 'err'); return; }
+  confirm2(`Delete unit "${state.units.find(u=>u.id===id)?.core?.name || id}"? This cannot be undone.`, () => {
+    state.units = state.units.filter(u => u.id !== id);
+    if(state.activeUnitId === id) state.activeUnitId = state.units[0].id;
+    renderSidebar();
+    renderForm();
+    renderCode();
+  });
+}
+
+function selectUnit(id){
+  state.activeUnitId = id;
+  if(isModInfo()) state.activeView = 'core';
+  renderSidebar();
+  renderForm();
+  renderCode();
+  updateHeader();
+  closeSidebar();
+}
+
+function newProject(){
+  confirm2('Reset everything and start a new project? All unsaved work will be lost.', () => {
+    const freshId = 'unit_0';
+    state.units = [createUnit(freshId,'Unit1')];
+    state.activeUnitId = freshId;
+    state.activeView = 'core';
+    state.codeTab = 'unit';
+    state.multiActiveItem = {};
+    state.modInfo = {
+      title:'New Project', description:'A Rusted Warfare Mod.', tags:'units',
+      minVersion:'1.15', id:'com.user.mod', requiredMods:'', requiredModsMessage:''
+    };
+    renderSidebar();
+    renderForm();
+    renderCode();
+    updateHeader();
+    showToast('New project created', 'ok');
+  });
+}
+
+// ══════════════════════════════════════════
+//  ACTIONS
+// ══════════════════════════════════════════
+function copyCode(){
+  const text = state.codeTab === 'manifest' ? genModInfoIni() : genUnitIni(activeUnit());
+  navigator.clipboard.writeText(text).then(() => showToast('Copied to clipboard!', 'ok'));
+}
+
+async function exportZip(){
+  const unitsIni = {};
+  state.units.forEach(u => { unitsIni[u.filename] = genUnitIni(u); });
+  const payload = {
+    units: state.units.map(u => ({id:u.id, filename:u.filename})),
+    modInfo: state.modInfo,
+    unitsIni,
+    modInfoIni: genModInfoIni(),
+  };
+  try {
+    const r = await fetch('/api/export-zip', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(payload)
+    });
+    if(!r.ok) throw new Error(await r.text());
+    const blob = await r.blob();
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href = url; a.download = (state.modInfo.title || 'mod').replace(/\s+/g,'_') + '.zip';
+    a.click(); URL.revokeObjectURL(url);
+    showToast('ZIP exported!', 'ok');
+  } catch(e){
+    showToast('Export failed: ' + e.message, 'err');
+  }
+}
+
+async function runAI(){
+  const prompt = document.getElementById('ai-prompt').value.trim();
+  if(!prompt) return;
+  const btn = document.getElementById('btn-run-ai');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
+  document.getElementById('ai-result-box').style.display = 'none';
+  try {
+    const r = await fetch('/api/ai-suggest', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({prompt})
+    });
+    const data = await r.json();
+    if(data.error) throw new Error(data.error);
+    document.getElementById('ai-result-code').textContent = data.result;
+    document.getElementById('ai-result-box').style.display = 'block';
+  } catch(e){
+    showToast(e.message, 'err');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-bolt"></i> Generate Logic';
+  }
+}
+
+function copyAiResult(){
+  const text = document.getElementById('ai-result-code').textContent;
+  navigator.clipboard.writeText(text).then(() => showToast('Copied!', 'ok'));
+}
+
+// ══════════════════════════════════════════
+//  UI HELPERS
+// ══════════════════════════════════════════
+function toggleSidebar(){
+  const s = document.getElementById('sidebar');
+  const o = document.getElementById('sidebar-overlay');
+  const isOpen = !s.classList.contains('open');
+  s.classList.toggle('open', isOpen);
+  o.classList.toggle('open', isOpen);
+  // iOS body-scroll lock
+  document.body.classList.toggle('sidebar-open', isOpen);
+  if(isOpen) closeCodePane(); // only one panel at a time
+}
+function closeSidebar(){
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebar-overlay').classList.remove('open');
+  document.body.classList.remove('sidebar-open');
+}
+function toggleCodePane(){
+  const cp = document.getElementById('code-pane');
+  const isOpen = !cp.classList.contains('open');
+  cp.classList.toggle('open', isOpen);
+  // iOS body-scroll lock
+  document.body.classList.toggle('codepane-open', isOpen);
+  if(isOpen) closeSidebar(); // only one panel at a time
+}
+function closeCodePane(){
+  document.getElementById('code-pane').classList.remove('open');
+  document.body.classList.remove('codepane-open');
+}
+
+function openModal(id){
+  document.getElementById(id)?.classList.add('open');
+  if(id === 'modal-turret-editor'){
+    requestAnimationFrame(() => { teSizeCanvas(); teDraw(); });
+  }
+  if(id === 'modal-import'){
+    ['imp-result-zip','imp-result-ini','imp-result-folder'].forEach(rid=>{
+      const el = document.getElementById(rid); if(el) el.innerHTML='';
+    });
+    ['inp-zip','inp-ini','inp-folder'].forEach(iid=>{
+      const el = document.getElementById(iid); if(el) el.value='';
+    });
+    _importPreview = null;
+    setImportMode('zip');
+  }
+}
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+// Close modal on backdrop click
+document.querySelectorAll('.modal-backdrop').forEach(el => {
+  el.addEventListener('click', e => { if(e.target === el) closeModal(el.id); });
+});
+
+let _toastTimer;
+function showToast(msg, type='info'){
+  const t = document.getElementById('toast');
+  const icons = {ok:'fa-check-circle', err:'fa-triangle-exclamation', info:'fa-circle-info'};
+  t.className = type; t.innerHTML = `<i class="fas ${icons[type]||icons.info}"></i> ${escHtml(msg)}`;
+  t.classList.add('show');
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// Safe: reads from pre-built FIELD_REGISTRY — no user strings in onclick attrs
+function showFieldInfo(key){
+  const info = FIELD_REGISTRY[key];
+  if(!info) return;
+  document.getElementById('info-title').textContent   = info.label;
+  document.getElementById('info-desc').textContent    = info.description;
+  document.getElementById('info-example').textContent = info.example;
+  openModal('modal-info');
+}
+
+let _confirmCb = null;
+function confirm2(msg, cb){
+  document.getElementById('confirm-text').textContent = msg;
+  _confirmCb = cb;
+  openModal('modal-confirm');
+}
+document.getElementById('confirm-ok-btn').addEventListener('click', () => {
+  closeModal('modal-confirm');
+  if(_confirmCb){ _confirmCb(); _confirmCb = null; }
+});
+
+// Inline prompt (simpler than browser prompt())
+function promptInline(msg, def=''){
+  // Simple fallback — works cross-browser, avoids confirm() blocking issue on mobile
+  const res = window.prompt(msg, def); // still acceptable for name entry
+  return res ? res.trim() : null;
+}
+
+
+// ══════════════════════════════════════════
+//  IMPORT — state & mode
+// ══════════════════════════════════════════
+let _importMode = 'zip';
+let _importPreview = null; // { units:[], modInfo:null }
+
+function setImportMode(mode){
+  _importMode = mode;
+  document.querySelectorAll('.import-mode-tab').forEach(t =>
+    t.classList.toggle('active', t.dataset.mode === mode));
+  ['zip','ini','folder'].forEach(m => {
+    const p = document.getElementById('impanel-'+m);
+    if(p) p.style.display = (m === mode) ? '' : 'none';
+  });
+}
+
+// ── Drag-and-drop helpers ──────────────────
+function dzOver(e, id){
+  e.preventDefault();
+  document.getElementById(id)?.classList.add('drag-over');
+}
+function dzLeave(id){
+  document.getElementById(id)?.classList.remove('drag-over');
+}
+function dzDrop(e, mode){
+  e.preventDefault();
+  const id = 'dz-' + mode;
+  document.getElementById(id)?.classList.remove('drag-over');
+  const files = e.dataTransfer.files;
+  if(!files.length) return;
+  if(mode === 'zip')    handleImportZip(files);
+  else if(mode === 'ini')    handleImportIni(files);
+  else if(mode === 'folder') handleImportFolder(files);
+}
+
+// ── INI parser ─────────────────────────────
+function parseIni(text){
+  const sections = {};
+  let cur = null;
+  for(const rawLine of text.split('\n')){
+    const line = rawLine.trim();
+    if(!line || line.startsWith('#') || line.startsWith(';') || line.startsWith('//')) continue;
+    const sm = line.match(/^\[(.+)\]$/);
+    if(sm){ cur = sm[1].trim(); if(!sections[cur]) sections[cur]={}; continue; }
+    if(cur){
+      const ci = line.indexOf(':');
+      if(ci > 0){
+        const k = line.substring(0,ci).trim();
+        const v = line.substring(ci+1).trim();
+        sections[cur][k] = v;
+      }
+    }
+  }
+  return sections;
+}
+
+// ── Map parsed sections → unit object ─────
+const _MULTI_PREFIXES = [
+  {re:/^turret_/i,        key:'turrets'},
+  {re:/^projectile_/i,    key:'projectiles'},
+  {re:/^action_/i,        key:'actions'},
+  {re:/^animation_/i,     key:'animations'},
+  {re:/^canBuild_/i,      key:'canBuilds'},
+  {re:/^leg_/i,           key:'legs'},
+  {re:/^attachment_/i,    key:'attachments'},
+  {re:/^effect_/i,        key:'effects'},
+  {re:/^placementRule_/i, key:'placementRules'},
+  {re:/^resource_/i,      key:'resources'},
+  {re:/^decal_/i,         key:'decals'},
+];
+const _SIMPLE_SECS = ['core','graphics','attack','movement','ai'];
+
+function sectionsToUnit(sections, filename){
+  const baseName = filename.replace(/\.(ini|copyfrom|template)$/i,'');
+  const unit = createUnit('unit_' + Date.now() + '_' + Math.random().toString(36).slice(2), baseName);
+  Object.entries(sections).forEach(([sec, fields]) => {
+    const lower = sec.toLowerCase();
+    if(_SIMPLE_SECS.includes(lower)){
+      unit[lower] = Object.assign({}, unit[lower], fields);
+      return;
+    }
+    for(const {re, key} of _MULTI_PREFIXES){
+      if(re.test(sec)){
+        const idPart = sec.split(/[_\s]+/).slice(1).join('_') || String(unit[key].length+1);
+        unit[key].push({id: idPart, ...fields});
+        return;
+      }
+    }
+  });
+  if(unit.core?.name){
+    unit.filename = unit.core.name.endsWith('.ini') ? unit.core.name : unit.core.name+'.ini';
+  }
+  return unit;
+}
+
+// ── Parse mod-info section ─────────────────
+function sectionsToModInfo(sections){
+  const modSec = sections['mod'] || sections['Mod'] || sections['MOD'];
+  if(!modSec) return null;
+  const info = {};
+  const MOD_FIELDS = ['title','description','tags','minVersion','id','requiredMods','requiredModsMessage'];
+  MOD_FIELDS.forEach(k => { if(modSec[k] !== undefined) info[k] = modSec[k]; });
+  return Object.keys(info).length ? info : null;
+}
+
+// ── Render preview result ──────────────────
+function renderImportPreview(containerId, preview, label){
+  _importPreview = preview;
+  const el = document.getElementById(containerId);
+  if(!el) return;
+
+  if(!preview || (!preview.units.length && !preview.modInfo)){
+    el.innerHTML = `<div class="import-err"><i class="fas fa-triangle-exclamation"></i> No importable data found in ${escHtml(label)}</div>`;
+    return;
+  }
+
+  // Build preview rows — cap at 12 visible to avoid huge DOM
+  const MAX_PREVIEW_ROWS = 12;
+  const rows = [];
+  if(preview.modInfo?.title)
+    rows.push(`<div class="import-preview-row"><i class="fas fa-file-invoice"></i> Mod: <b>${escHtml(preview.modInfo.title)}</b></div>`);
+  preview.units.slice(0, MAX_PREVIEW_ROWS).forEach(u => {
+    const name = u.core?.name || u.filename;
+    rows.push(`<div class="import-preview-row"><i class="fas fa-robot"></i> ${escHtml(name)}</div>`);
+  });
+  const overflow = preview.units.length - MAX_PREVIEW_ROWS;
+  if(overflow > 0)
+    rows.push(`<div class="import-preview-row" style="color:var(--text3)"><i class="fas fa-ellipsis"></i> …and ${overflow} more unit(s)</div>`);
+
+  const warningsHtml = (preview.warnings || []).map(w =>
+    `<div class="import-warn"><i class="fas fa-triangle-exclamation"></i> ${escHtml(w)}</div>`
+  ).join('');
+
+  el.innerHTML = `
+    <div class="import-preview">
+      <div class="pvlabel">READY TO IMPORT — ${preview.units.length} UNIT(S)${preview.assetCount ? ' · '+preview.assetCount+' ASSETS' : ''}</div>
+      ${rows.join('')}
+      <div class="import-action-btns">
+        <button class="btn-imp-replace" onclick="applyImport('replace')">
+          <i class="fas fa-rotate"></i> Replace Project
+        </button>
+        <button class="btn-imp-append" onclick="applyImport('append')">
+          <i class="fas fa-plus"></i> Add to Project
+        </button>
+      </div>
+    </div>${warningsHtml}`;
+}
+
+// ── Apply import to state ──────────────────
+function applyImport(mode){
+  if(!_importPreview) return;
+  const {units, modInfo} = _importPreview;
+
+  if(modInfo) Object.assign(state.modInfo, modInfo);
+
+  if(mode === 'replace'){
+    if(units.length){
+      state.units = units;
+      state.activeUnitId = units[0].id;
+    }
+  } else {
+    state.units.push(...units);
+    if(units.length) state.activeUnitId = units[0].id;
+  }
+
+  state.activeView = 'core';
+  state.multiActiveItem = {};
+  renderSidebar(); renderForm(); renderCode(); updateHeader();
+  closeModal('modal-import');
+  showToast(`Imported ${units.length} unit(s) successfully`, 'ok');
+  _importPreview = null;
+}
+
+// ══════════════════════════════════════════
+//  IMPORT — Mode 1: ZIP / RWMOD
+// ══════════════════════════════════════════
+async function handleImportZip(files){
+  const file = files?.[0];
+  if(!file) return;
+  const ext = file.name.split('.').pop().toLowerCase();
+  if(!['zip','rwmod'].includes(ext)){
+    document.getElementById('imp-result-zip').innerHTML =
+      `<div class="import-err"><i class="fas fa-triangle-exclamation"></i> Only .zip and .rwmod files are supported.</div>`;
+    return;
+  }
+
+  const resultEl = document.getElementById('imp-result-zip');
+  resultEl.innerHTML = `<div class="import-progress">
+    <span>Uploading…</span>
+    <div class="import-progress-bar-wrap"><div class="import-progress-bar" style="width:2%"></div></div>
+  </div>`;
+
+  try {
+    const fd = new FormData();
+    fd.append('mode', 'zip');
+    fd.append('file', file);
+    const data = await _uploadWithProgress('/api/import', fd, resultEl);
+    resultEl.innerHTML = `<div class="import-progress"><span><i class="fas fa-spinner fa-spin"></i> Parsing on server…</span><div class="import-progress-bar-wrap"><div class="import-progress-bar" style="width:100%"></div></div></div>`;
+    _applyServerImport('imp-result-zip', data, file.name);
+  } catch(e){
+    resultEl.innerHTML =
+      `<div class="import-err"><i class="fas fa-triangle-exclamation"></i> ${escHtml(e.message)}</div>`;
+  }
+}
+
+// ══════════════════════════════════════════
+//  IMPORT — Mode 2: INI / copyfrom / template
+// ══════════════════════════════════════════
+async function handleImportIni(files){
+  const arr = Array.from(files);
+  if(!arr.length){
+    document.getElementById('imp-result-ini').innerHTML =
+      `<div class="import-err"><i class="fas fa-triangle-exclamation"></i> No files selected.</div>`;
+    return;
+  }
+
+  const resultEl = document.getElementById('imp-result-ini');
+  resultEl.innerHTML = `<div class="import-progress">
+    <span>Uploading ${arr.length} file(s)…</span>
+    <div class="import-progress-bar-wrap"><div class="import-progress-bar" style="width:2%"></div></div>
+  </div>`;
+
+  try {
+    const fd = new FormData();
+    fd.append('mode', 'ini');
+    arr.forEach(f => fd.append('files[]', f));
+    const data = await _uploadWithProgress('/api/import', fd, resultEl);
+    _applyServerImport('imp-result-ini', data, arr.length + ' file(s)');
+  } catch(e){
+    resultEl.innerHTML =
+      `<div class="import-err"><i class="fas fa-triangle-exclamation"></i> ${escHtml(e.message)}</div>`;
+  }
+}
+
+// ══════════════════════════════════════════
+//  IMPORT — Mode 3: Folder scan
+// ══════════════════════════════════════════
+async function handleImportFolder(files){
+  const arr = Array.from(files);
+  if(!arr.length){
+    document.getElementById('imp-result-folder').innerHTML =
+      `<div class="import-err"><i class="fas fa-triangle-exclamation"></i> No files found in folder.</div>`;
+    return;
+  }
+
+  const resultEl = document.getElementById('imp-result-folder');
+  resultEl.innerHTML = `<div class="import-progress">
+    <span>Uploading ${arr.length} file(s)…</span>
+    <div class="import-progress-bar-wrap"><div class="import-progress-bar" style="width:2%"></div></div>
+  </div>`;
+
+  try {
+    const fd = new FormData();
+    fd.append('mode', 'folder');
+    arr.forEach(f => fd.append('files[]', f));
+    const data = await _uploadWithProgress('/api/import', fd, resultEl);
+    _applyServerImport('imp-result-folder', data, 'folder');
+  } catch(e){
+    resultEl.innerHTML =
+      `<div class="import-err"><i class="fas fa-triangle-exclamation"></i> ${escHtml(e.message)}</div>`;
+  }
+}
+
+// ── Reset import modal state when closed ──
+document.addEventListener('DOMContentLoaded', () => {
+  const backdrop = document.getElementById('modal-import');
+  if(backdrop) backdrop.addEventListener('click', e => {
+    if(e.target === backdrop) {
+      _importPreview = null;
+    }
+  });
+});
+
+
+// ══════════════════════════════════════════
+//  AUTOSAVE — localStorage
+// ══════════════════════════════════════════
+const AUTOSAVE_KEY = 'rwgui_autosave_v1';
+let _autosaveTimer = null;
+
+function scheduleAutosave(){
+  clearTimeout(_autosaveTimer);
+  const dot = document.getElementById('autosave-dot');
+  if(dot) dot.classList.remove('saved');
+  // Longer debounce for larger projects (more units = more data to serialize)
+  const delay = state.units.length > 50 ? 5000 : state.units.length > 15 ? 3000 : 1500;
+  _autosaveTimer = setTimeout(doAutosave, delay);
+}
+
+function doAutosave(){
+  try{
+    const snapshot = JSON.stringify(exportStateSnapshot());
+    // Use requestIdleCallback when available (mobile-friendly: defers to idle time)
+    const save = () => {
+      try {
+        localStorage.setItem(AUTOSAVE_KEY, snapshot);
+        const dot = document.getElementById('autosave-dot');
+        if(dot){ dot.classList.add('saved'); setTimeout(()=>dot.classList.remove('saved'),2000); }
+      } catch(e){ console.warn('Autosave write failed:',e); }
+    };
+    if(window.requestIdleCallback) requestIdleCallback(save, {timeout:2000});
+    else save();
+  }catch(e){ console.warn('Autosave failed:',e); }
+}
+
+function tryRestoreAutosave(){
+  try{
+    const raw = localStorage.getItem(AUTOSAVE_KEY);
+    if(!raw) return false;
+    applyStateSnapshot(JSON.parse(raw));
+    document.getElementById('autosave-banner')?.classList.add('show');
+    setTimeout(()=>document.getElementById('autosave-banner')?.classList.remove('show'), 4000);
+    return true;
+  }catch(e){ console.warn('Restore failed:',e); return false; }
+}
+
+// ══════════════════════════════════════════
+//  SAVE / LOAD PROJECT JSON
+// ══════════════════════════════════════════
+function exportStateSnapshot(){
+  return { version:1, modInfo: state.modInfo, units: state.units,
+           activeUnitId: state.activeUnitId, activeView: state.activeView };
+}
+
+function applyStateSnapshot(snap){
+  if(!snap || snap.version !== 1) throw new Error('Invalid project file');
+  state.modInfo      = snap.modInfo      || state.modInfo;
+  state.units        = snap.units        || state.units;
+  state.activeUnitId = snap.activeUnitId || state.units[0]?.id;
+  state.activeView   = snap.activeView   || 'core';
+  state.multiActiveItem = {};
+}
+
+function saveProjectJSON(){
+  const snap = exportStateSnapshot();
+  const blob = new Blob([JSON.stringify(snap, null, 2)], {type:'application/json'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  const safe = (state.modInfo.title || 'project').replace(/\s+/g,'_');
+  a.href = url; a.download = safe + '.rwgui'; a.click();
+  URL.revokeObjectURL(url);
+  showToast('Project saved as .rwgui file', 'ok');
+}
+
+function loadProjectJSON(files){
+  const file = files?.[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try{
+      const snap = JSON.parse(e.target.result);
+      applyStateSnapshot(snap);
+      renderSidebar(); renderForm(); renderCode(); updateHeader();
+      showToast('Project loaded!', 'ok');
+      document.getElementById('inp-load-proj').value = '';
+    }catch(err){
+      showToast('Load failed: ' + err.message, 'err');
+    }
+  };
+  reader.readAsText(file);
+}
+
+// ══════════════════════════════════════════
+//  UNIT DUPLICATE
+// ══════════════════════════════════════════
+function duplicateUnit(id){
+  const src = state.units.find(u => u.id === id);
+  if(!src) return;
+  const newId   = 'unit_' + Date.now();
+  const clone   = JSON.parse(JSON.stringify(src));
+  clone.id      = newId;
+  const baseName = (clone.core?.name || 'Unit').replace(/\s*\(copy\d*\)$/, '');
+  const copyNum  = state.units.filter(u => (u.core?.name||'').startsWith(baseName+' (copy')).length;
+  const newName  = baseName + ' (copy' + (copyNum > 0 ? copyNum+1 : '') + ')';
+  if(clone.core) clone.core.name = newName;
+  clone.filename = newName.endsWith('.ini') ? newName : newName + '.ini';
+  const idx = state.units.findIndex(u => u.id === id);
+  state.units.splice(idx + 1, 0, clone);
+  state.activeUnitId = newId;
+  state.activeView = 'core';
+  renderSidebar(); renderForm(); renderCode(); updateHeader();
+  showToast(`Duplicated → ${newName}`, 'ok');
+}
+
+// ══════════════════════════════════════════
+//  HOOK autosave into renderCode
+// ══════════════════════════════════════════
+
+
+
+
+// ══════════════════════════════════════════
+//  ASSET PREVIEW — Lightbox + Sound
+// ══════════════════════════════════════════
+function openLightbox(filename){
+  const src = assetStore[filename];
+  if(!src) return;
+  document.getElementById('lb-img').src = src;
+  document.getElementById('lb-label').textContent = filename;
+  document.getElementById('asset-lightbox').classList.add('open');
+}
+function closeLightbox(){
+  document.getElementById('asset-lightbox').classList.remove('open');
+}
+document.addEventListener('keydown', e => {
+  if(e.key === 'Escape') closeLightbox();
+});
+
+// Sound player — one instance at a time
+let _currentAudio = null;
+let _currentSndBtn = null;
+
+function toggleSound(filename, btnId){
+  const btn = document.getElementById(btnId);
+  const src = assetStore[filename];
+  if(!src){ return; }
+
+  // Stop currently playing
+  if(_currentAudio && !_currentAudio.paused){
+    _currentAudio.pause();
+    _currentAudio.currentTime = 0;
+    if(_currentSndBtn) resetSndBtn(_currentSndBtn);
+    if(_currentSndBtn === btnId){ _currentAudio = null; _currentSndBtn = null; return; }
+  }
+
+  // Use Web Audio API for OGG (Safari fallback)
+  const ext = filename.split('.').pop().toLowerCase();
+  if(ext === 'ogg' && !canPlayOgg()){
+    playViaWebAudio(src, btn, btnId);
+  } else {
+    const audio = new Audio(src);
+    _currentAudio = audio;
+    _currentSndBtn = btnId;
+    btn.innerHTML = '<i class="fas fa-stop"></i> Stop';
+    btn.classList.add('playing');
+    audio.play().catch(() => { resetSndBtn(btnId); });
+    audio.onended = () => { resetSndBtn(btnId); _currentAudio = null; _currentSndBtn = null; };
+  }
+}
+
+function canPlayOgg(){
+  const a = document.createElement('audio');
+  return a.canPlayType('audio/ogg; codecs="vorbis"') !== '';
+}
+
+async function playViaWebAudio(src, btn, btnId){
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const b64 = src.split(',')[1];
+    const binary = atob(b64);
+    const buf = new Uint8Array(binary.length);
+    for(let i=0;i<binary.length;i++) buf[i] = binary.charCodeAt(i);
+    const decoded = await ctx.decodeAudioData(buf.buffer);
+    const source = ctx.createBufferSource();
+    source.buffer = decoded;
+    source.connect(ctx.destination);
+    _currentSndBtn = btnId;
+    btn.innerHTML = '<i class="fas fa-stop"></i> Stop';
+    btn.classList.add('playing');
+    source.start(0);
+    source.onended = () => { resetSndBtn(btnId); ctx.close(); _currentSndBtn = null; };
+    // Store stop handle
+    _currentAudio = { pause(){ source.stop(); }, paused: false, currentTime: 0 };
+  } catch(e){
+    resetSndBtn(btnId);
+    showToast('Cannot play audio: ' + e.message, 'err');
+  }
+}
+
+function resetSndBtn(btnId){
+  const b = document.getElementById(btnId);
+  if(b){ b.innerHTML = '<i class="fas fa-play"></i> Play'; b.classList.remove('playing'); }
+}
+
+// Re-render form after import to show previews
+
+
+
+
+
+// ══════════════════════════════════════════
+//  TURRET VISUAL EDITOR
+// ══════════════════════════════════════════
+const TE = {
+  zoom: 6,          // px per game-unit
+  turretIdx: 0,
+  dragging: null,   // 'turret' | 'barrel' | 'idleDir' | null
+  pointerType: 'mouse', // track for hit-test radius (touch needs larger target)
+  // live edit values (game-units)
+  tx: 0, ty: 0,     // turret pivot
+  bx: 0, by: 0,     // barrel tip (relative to turret)
+  idleDir: 0,       // idle facing angle (degrees, 0=up, 90=right, CW)
+  // cached images
+  chassisImg: null,
+  turretImg:  null,
+  animFrame:  null,
+  // Throttle canvas draws to ~30fps on mobile (saves battery & CPU)
+  _lastDraw: 0,
+};
+
+function teDrawThrottled(){
+  const now = performance.now();
+  // 33ms = ~30fps, skip frames on low-end devices
+  if(now - TE._lastDraw < 33){
+    if(!TE.animFrame) TE.animFrame = requestAnimationFrame(()=>{ TE._lastDraw=performance.now(); TE.animFrame=null; teDraw(); });
+    return;
+  }
+  TE._lastDraw = now;
+  teDraw();
+}
+
+function openTurretEditor(idx){
+  TE.turretIdx = idx;
+  const unit    = activeUnit();
+  const turret  = unit.turrets[idx] || {};
+  const gfx     = unit.graphics || {};
+
+  TE.tx      = parseFloat(turret.x        ?? 0) || 0;
+  TE.ty      = parseFloat(turret.y        ?? 0) || 0;
+  TE.bx      = parseFloat(turret.barrelX  ?? 0) || 0;
+  TE.by      = parseFloat(turret.barrelY  ?? 0) || 0;
+  TE.idleDir = ((parseFloat(turret.idleDir ?? 0) || 0) % 360 + 360) % 360;
+
+  document.getElementById('te-title').textContent =
+    'Turret ' + (idx + 1) + (turret.id ? ' — ' + turret.id : '');
+
+  teUpdateInputs();
+
+  // Load images (from assetStore or null)
+  const chassisSrc = assetStore[gfx.image] || null;
+  const turretSrc  = assetStore[gfx.image_turret] || null;
+
+  TE.chassisImg = null; TE.turretImg = null;
+  let loaded = 0;
+  const onLoad = () => { loaded++; if(loaded >= 2 || (!chassisSrc && !turretSrc)) teDraw(); };
+
+  if(chassisSrc){
+    const img = new Image(); img.onload = onLoad; img.src = chassisSrc; TE.chassisImg = img;
+  } else { onLoad(); }
+  if(turretSrc){
+    const img = new Image(); img.onload = onLoad; img.src = turretSrc; TE.turretImg = img;
+  } else { onLoad(); }
+
+  openModal('modal-turret-editor');
+  requestAnimationFrame(() => { teSizeCanvas(); teDraw(); });
+}
+
+function teSizeCanvas(){
+  const canvas = document.getElementById('te-canvas');
+  if(!canvas) return;
+  const wrap   = canvas.parentElement;
+  canvas.width  = wrap.clientWidth  || 400;
+  canvas.height = wrap.clientHeight || 380;
+}
+
+// Resize canvas when modal is open and viewport changes (orientation, etc.)
+if(window.ResizeObserver){
+  window.addEventListener('DOMContentLoaded', () => {
+    const canvasWrap = document.querySelector('#modal-turret-editor .te-canvas-wrap');
+    if(canvasWrap){
+      new ResizeObserver(() => {
+        if(document.getElementById('modal-turret-editor').classList.contains('open')){
+          teSizeCanvas();
+          teDraw();
+        }
+      }).observe(canvasWrap);
+    }
+  });
+}
+
+// ── Coordinate helpers ──────────────────────────────
+function teCx(gx){ return document.getElementById('te-canvas').width/2  + gx * TE.zoom; }
+function teCy(gy){ return document.getElementById('te-canvas').height/2 - gy * TE.zoom; }
+function teGx(cx){ return (cx - document.getElementById('te-canvas').width/2)  / TE.zoom; }
+function teGy(cy){ return (document.getElementById('te-canvas').height/2 - cy) / TE.zoom; }
+
+// ── Draw ────────────────────────────────────────────
+function teDraw(){
+  const canvas = document.getElementById('te-canvas');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const cx = W/2, cy = H/2;
+
+  // Clear with checkerboard
+  ctx.fillStyle = '#050a0f';
+  ctx.fillRect(0,0,W,H);
+  const gs = 20;
+  for(let r=0;r<H/gs+1;r++) for(let c=0;c<W/gs+1;c++){
+    if((r+c)%2===0){ ctx.fillStyle='rgba(255,255,255,.02)'; ctx.fillRect(c*gs,r*gs,gs,gs); }
+  }
+
+  // Grid lines
+  ctx.strokeStyle = 'rgba(255,255,255,.04)';
+  ctx.lineWidth = 1;
+  const gridUnit = TE.zoom * 5;
+  for(let x=cx%gridUnit; x<W; x+=gridUnit){ ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke(); }
+  for(let y=cy%gridUnit; y<H; y+=gridUnit){ ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
+
+  // Center crosshair
+  ctx.strokeStyle = 'rgba(0,200,255,.2)';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([4,4]);
+  ctx.beginPath(); ctx.moveTo(cx,0); ctx.lineTo(cx,H); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(0,cy); ctx.lineTo(W,cy); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Radius circle
+  const unit = activeUnit();
+  const radius = parseFloat(unit.core?.radius ?? unit.core?.displayRadius ?? 30) || 30;
+  ctx.strokeStyle = 'rgba(0,200,255,.25)';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([6,4]);
+  ctx.beginPath();
+  ctx.arc(cx, cy, radius * TE.zoom, 0, Math.PI*2);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // imageScale = skala body (px → gu); turretImageScale = skala turret image
+  const bodyScale   = parseFloat(unit.graphics?.imageScale ?? 0.25) || 0.25;
+  const turretScale = parseFloat(
+    unit.turrets?.[TE.turretIdx]?.turretImageScale
+    ?? unit.graphics?.turretImageScale
+    ?? bodyScale
+  ) || bodyScale;
+
+  // Chassis image
+  if(TE.chassisImg && TE.chassisImg.complete){
+    const iw = TE.chassisImg.width  * bodyScale * TE.zoom;
+    const ih = TE.chassisImg.height * bodyScale * TE.zoom;
+    ctx.save();
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(TE.chassisImg, cx - iw/2, cy - ih/2, iw, ih);
+    ctx.restore();
+  } else if(!TE.chassisImg) {
+    // Placeholder: default 106x238 px * 0.25
+    ctx.fillStyle = 'rgba(30,58,95,.5)';
+    ctx.strokeStyle = 'rgba(0,200,255,.3)';
+    ctx.lineWidth = 1;
+    const pw = 26.5 * TE.zoom, ph = 59.5 * TE.zoom;
+    ctx.fillRect(cx-pw/2, cy-ph/2, pw, ph);
+    ctx.strokeRect(cx-pw/2, cy-ph/2, pw, ph);
+    ctx.fillStyle='rgba(0,200,255,.3)';
+    ctx.font='10px monospace'; ctx.textAlign='center';
+    ctx.fillText('chassis', cx, cy);
+  }
+
+  // Turret image at (tx, ty) — rotated by idleDir, pakai turretScale
+  const tcx = teCx(TE.tx), tcy = teCy(TE.ty);
+  // idleDir 0=up(north), 90=right — canvas rotate is CW from X axis
+  // but our Y is flipped so CW on screen = +idleDir degrees
+  const idleRad = TE.idleDir * Math.PI / 180;
+  if(TE.turretImg && TE.turretImg.complete){
+    const iw = TE.turretImg.width  * turretScale * TE.zoom;
+    const ih = TE.turretImg.height * turretScale * TE.zoom;
+    ctx.save();
+    ctx.imageSmoothingEnabled = false;
+    ctx.translate(tcx, tcy);
+    ctx.rotate(idleRad);
+    ctx.drawImage(TE.turretImg, -iw/2, -ih/2, iw, ih);
+    ctx.restore();
+  } else if(!TE.turretImg) {
+    const tw = 18 * TE.zoom, th = 27 * TE.zoom;
+    ctx.save();
+    ctx.translate(tcx, tcy);
+    ctx.rotate(idleRad);
+    ctx.fillStyle = 'rgba(255,107,26,.2)';
+    ctx.strokeStyle = 'rgba(255,107,26,.5)';
+    ctx.lineWidth = 1;
+    ctx.fillRect(-tw/2, -th/2, tw, th);
+    ctx.strokeRect(-tw/2, -th/2, tw, th);
+    ctx.restore();
+  }
+
+  // idleDir ring + handle
+  // handle position: radius DIR_R in game-units, at idleDir angle from turret
+  const DIR_R = 20; // game-units
+  const dirHGx = TE.tx + Math.sin(idleRad) * DIR_R;
+  const dirHGy = TE.ty + Math.cos(idleRad) * DIR_R;
+  const dhx = teCx(dirHGx), dhy = teCy(dirHGy);
+  // dashed ring around turret
+  ctx.strokeStyle = 'rgba(0,220,255,.18)';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([3,3]);
+  ctx.beginPath(); ctx.arc(tcx, tcy, DIR_R * TE.zoom, 0, Math.PI*2); ctx.stroke();
+  ctx.setLineDash([]);
+  // line from turret center to handle
+  ctx.strokeStyle = 'rgba(0,220,255,.55)';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(tcx, tcy); ctx.lineTo(dhx, dhy); ctx.stroke();
+  // arrowhead at handle
+  const aRad = idleRad;
+  const aSize = 7;
+  ctx.fillStyle = '#00dcff';
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(dhx + Math.cos(aRad - Math.PI*0.8)*aSize, dhy + Math.sin(aRad - Math.PI*0.8)*aSize);
+  ctx.lineTo(dhx, dhy);
+  ctx.lineTo(dhx + Math.cos(aRad + Math.PI*0.8)*aSize, dhy + Math.sin(aRad + Math.PI*0.8)*aSize);
+  ctx.fill(); ctx.stroke();
+
+  // Barrel line: from turret center to barrel tip
+  const bcx = teCx(TE.tx + TE.bx), bcy = teCy(TE.ty + TE.by);
+  ctx.strokeStyle = '#39ff14';
+  ctx.lineWidth = 1.5;
+  ctx.setLineDash([4,3]);
+  ctx.beginPath(); ctx.moveTo(tcx, tcy); ctx.lineTo(bcx, bcy); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Barrel tip handle
+  ctx.fillStyle   = '#39ff14';
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth   = 1.5;
+  ctx.beginPath(); ctx.arc(bcx, bcy, 6, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+
+  // Turret pivot handle (drawn last = on top)
+  ctx.fillStyle   = '#ff6b1a';
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth   = 2;
+  ctx.beginPath(); ctx.arc(tcx, tcy, 8, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+  // cross inside pivot
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(tcx-4,tcy); ctx.lineTo(tcx+4,tcy); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(tcx,tcy-4); ctx.lineTo(tcx,tcy+4); ctx.stroke();
+
+  // Coord labels
+  ctx.font = '10px monospace';
+  ctx.fillStyle = '#ff6b1a';
+  ctx.textAlign = 'left';
+  ctx.fillText(`(${round2(TE.tx)}, ${round2(TE.ty)})`, tcx+11, tcy+4);
+  ctx.fillStyle = '#39ff14';
+  ctx.fillText(`barrel(${round2(TE.bx)}, ${round2(TE.by)})`, bcx+8, bcy-4);
+  // idleDir label near handle
+  ctx.fillStyle = '#00dcff';
+  ctx.textAlign = 'center';
+  ctx.fillText(`${Math.round(TE.idleDir)}°`, dhx, dhy - 10);
+}
+
+function round2(v){ return Math.round(v*100)/100; }
+
+// ── Zoom ───────────────────────────────────
+function teZoom(delta){
+  const steps = [1,2,3,4,6,8,10,12,16];
+  let idx = steps.indexOf(TE.zoom);
+  if(idx === -1) idx = steps.findIndex(s=>s>TE.zoom) - 1;
+  idx = Math.max(0, Math.min(steps.length-1, idx+delta));
+  TE.zoom = steps[idx];
+  document.getElementById('te-zoom-label').textContent = TE.zoom + ' px/gu';
+  teDraw();
+}
+
+// ── Input fields ────────────────────────────
+function teUpdateInputs(){
+  document.getElementById('te-inp-x').value  = round2(TE.tx);
+  document.getElementById('te-inp-y').value  = round2(TE.ty);
+  document.getElementById('te-inp-bx').value = round2(TE.bx);
+  document.getElementById('te-inp-by').value = round2(TE.by);
+  document.getElementById('te-inp-dir').value = Math.round(TE.idleDir);
+}
+function teInputChanged(){
+  TE.tx      = parseFloat(document.getElementById('te-inp-x').value)   || 0;
+  TE.ty      = parseFloat(document.getElementById('te-inp-y').value)   || 0;
+  TE.bx      = parseFloat(document.getElementById('te-inp-bx').value)  || 0;
+  TE.by      = parseFloat(document.getElementById('te-inp-by').value)  || 0;
+  TE.idleDir = ((parseFloat(document.getElementById('te-inp-dir').value) || 0) % 360 + 360) % 360;
+  teDraw();
+}
+
+// ── Apply to state ──────────────────────────
+function teApply(){
+  const unit = activeUnit();
+  if(!unit.turrets[TE.turretIdx]) unit.turrets[TE.turretIdx] = {};
+  const t = unit.turrets[TE.turretIdx];
+  t.x       = round2(TE.tx);
+  t.y       = round2(TE.ty);
+  t.barrelX = round2(TE.bx);
+  t.barrelY = round2(TE.by);
+  const dir = Math.round(TE.idleDir);
+  if(dir !== 0) t.idleDir = dir; else delete t.idleDir;
+  renderForm();
+  renderCode();
+  showToast(`Turret ${TE.turretIdx+1} updated`, 'ok');
+  closeModal('modal-turret-editor');
+}
+
+// ── Pointer events (mouse + touch) ─────────
+function teHitTest(gx, gy){
+  // Touch pointer needs a larger hit radius than mouse precision
+  const BASE   = TE.pointerType === 'touch' ? 18 : 10;
+  const THRESH = BASE / TE.zoom; // hit radius in game-units
+  const dTurret = Math.hypot(gx - TE.tx, gy - TE.ty);
+  const dBarrel = Math.hypot(gx - (TE.tx+TE.bx), gy - (TE.ty+TE.by));
+  const idleRad2 = TE.idleDir * Math.PI / 180;
+  const dirHGx = TE.tx + Math.sin(idleRad2) * 20;
+  const dirHGy = TE.ty + Math.cos(idleRad2) * 20;
+  const dDir = Math.hypot(gx - dirHGx, gy - dirHGy);
+  if(dBarrel < THRESH) return 'barrel';
+  if(dTurret < THRESH) return 'turret';
+  if(dDir   < THRESH * 1.5) return 'idleDir';
+  return null;
+}
+
+function tePointerToGame(e){
+  const canvas = document.getElementById('te-canvas');
+  const rect   = canvas.getBoundingClientRect();
+  const scaleX = canvas.width  / rect.width;
+  const scaleY = canvas.height / rect.height;
+  const px = (e.clientX - rect.left) * scaleX;
+  const py = (e.clientY - rect.top)  * scaleY;
+  return { gx: teGx(px), gy: teGy(py), px, py };
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const canvas = document.getElementById('te-canvas');
+  if(!canvas) return;
+
+  // ── Pinch-zoom state ──
+  const _tePointers = {}; // pointerId → {x, y}
+  let _tePinchDist  = null;
+
+  canvas.addEventListener('pointerdown', e => {
+    e.preventDefault();
+    canvas.setPointerCapture(e.pointerId);
+    _tePointers[e.pointerId] = {x: e.clientX, y: e.clientY};
+    TE.pointerType = e.pointerType || 'mouse';
+
+    // Only start drag when single pointer
+    if(Object.keys(_tePointers).length === 1){
+      const {gx, gy} = tePointerToGame(e);
+      TE.dragging = teHitTest(gx, gy);
+      if(TE.dragging) canvas.style.cursor = 'grabbing';
+    }
+  });
+
+  canvas.addEventListener('pointermove', e => {
+    e.preventDefault();
+    _tePointers[e.pointerId] = {x: e.clientX, y: e.clientY};
+
+    // ── Pinch-to-zoom: 2 active pointers ──
+    const ids = Object.keys(_tePointers);
+    if(ids.length >= 2){
+      const [a, b] = ids.slice(0, 2).map(k => _tePointers[k]);
+      const dist = Math.hypot(a.x - b.x, a.y - b.y);
+      if(_tePinchDist !== null){
+        if(dist / _tePinchDist > 1.15){ teZoom(+1); _tePinchDist = dist; }
+        else if(dist / _tePinchDist < 0.87){ teZoom(-1); _tePinchDist = dist; }
+      } else {
+        _tePinchDist = dist;
+      }
+      TE.dragging = null; // cancel drag while pinching
+      return;
+    }
+    _tePinchDist = null;
+
+    // ── Single-pointer: drag or cursor update ──
+    const {gx, gy} = tePointerToGame(e);
+    document.getElementById('te-cursor-pos').textContent =
+      `${round2(gx)}, ${round2(gy)} gu`;
+
+    if(!TE.dragging){
+      canvas.style.cursor = teHitTest(gx, gy) ? 'grab' : 'crosshair';
+      return;
+    }
+
+    if(TE.dragging === 'turret'){
+      TE.tx = round2(gx); TE.ty = round2(gy);
+    } else if(TE.dragging === 'barrel'){
+      TE.bx = round2(gx - TE.tx); TE.by = round2(gy - TE.ty);
+    } else if(TE.dragging === 'idleDir'){
+      // atan2(dx, dy) gives angle from +Y axis (=up=0°) clockwise
+      const dx = gx - TE.tx, dy = gy - TE.ty;
+      const raw = Math.atan2(dx, dy) * 180 / Math.PI;
+      TE.idleDir = ((Math.round(raw)) % 360 + 360) % 360;
+    }
+    teUpdateInputs();
+    teDrawThrottled();
+  });
+
+  canvas.addEventListener('pointerup', e => {
+    delete _tePointers[e.pointerId];
+    if(Object.keys(_tePointers).length < 2) _tePinchDist = null;
+    TE.dragging = null;
+    canvas.style.cursor = 'crosshair';
+  });
+
+  canvas.addEventListener('pointercancel', e => {
+    delete _tePointers[e.pointerId];
+    if(Object.keys(_tePointers).length < 2) _tePinchDist = null;
+    TE.dragging = null;
+    canvas.style.cursor = 'crosshair';
+  });
+
+  // Resize observer
+  const wrap = canvas.parentElement;
+  if(window.ResizeObserver){
+    new ResizeObserver(() => { teSizeCanvas(); teDraw(); }).observe(wrap);
+  }
+});
+
+
+// ══════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════
+if(!tryRestoreAutosave()){
+  // fresh start — nothing to restore
+}
+renderSidebar();
+renderForm();
+renderCode();
+updateHeader();
+</script>
+
+<!-- ══ ASSET LIGHTBOX ══════════════════════ -->
+<div id="asset-lightbox" onclick="closeLightbox()">
+  <img id="lb-img" src="" alt="">
+  <div class="lb-label" id="lb-label"></div>
+</div>
+
+<!-- ══ TURRET VISUAL EDITOR ════════════════ -->
+<div class="modal-backdrop" id="modal-turret-editor">
+  <div class="modal-box">
+    <div class="modal-head" style="flex-shrink:0">
+      <h3><i class="fas fa-crosshairs" style="color:var(--accent)"></i>
+        Visual Turret Editor — <span id="te-title">Turret 1</span></h3>
+      <button class="modal-close" onclick="closeModal('modal-turret-editor')">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="te-layout">
+      <!-- Canvas area -->
+      <div class="te-canvas-wrap">
+        <div class="te-toolbar">
+          <button class="te-zoom-btn" onclick="teZoom(-1)">−</button>
+          <span id="te-zoom-label">6 px/gu</span>
+          <button class="te-zoom-btn" onclick="teZoom(+1)">+</button>
+          <span style="margin-left:auto;color:var(--text3);font-size:10px" id="te-cursor-pos">—</span>
+        </div>
+        <canvas id="te-canvas"></canvas>
+      </div>
+      <!-- Sidebar with coords -->
+      <div class="te-sidebar">
+        <div class="te-sidebar-head">COORDINATES</div>
+
+        <div class="te-coord-row">
+          <span class="te-coord-label" style="color:#ff6b1a">⊕ x</span>
+          <input class="te-coord-input" id="te-inp-x" type="number" step="0.5"
+                 oninput="teInputChanged()">
+        </div>
+        <div class="te-coord-row">
+          <span class="te-coord-label" style="color:#ff6b1a">⊕ y</span>
+          <input class="te-coord-input" id="te-inp-y" type="number" step="0.5"
+                 oninput="teInputChanged()">
+        </div>
+        <div class="te-coord-row">
+          <span class="te-coord-label" style="color:#39ff14">⊛ bX</span>
+          <input class="te-coord-input" id="te-inp-bx" type="number" step="0.5"
+                 oninput="teInputChanged()">
+        </div>
+        <div class="te-coord-row">
+          <span class="te-coord-label" style="color:#39ff14">⊛ bY</span>
+          <input class="te-coord-input" id="te-inp-by" type="number" step="0.5"
+                 oninput="teInputChanged()">
+        </div>
+        <div class="te-coord-row" style="grid-column:1/-1">
+          <span class="te-coord-label" style="color:#00dcff">↻ idleDir</span>
+          <input class="te-coord-input" id="te-inp-dir" type="number" step="1" min="0" max="359"
+                 oninput="teInputChanged()" style="color:#00dcff">
+        </div>
+
+        <div class="te-legend">
+          <div class="te-legend-item">
+            <div class="te-legend-dot" style="color:#ff6b1a"></div>
+            Turret pivot (x, y)
+          </div>
+          <div class="te-legend-item">
+            <div class="te-legend-dot" style="color:#39ff14"></div>
+            Barrel tip (barrelX, Y)
+          </div>
+          <div class="te-legend-item">
+            <div class="te-legend-dot" style="color:rgba(0,200,255,.6)"></div>
+            Unit radius
+          </div>
+        </div>
+
+        <button class="te-apply-btn" onclick="teApply()">
+          <i class="fas fa-check"></i> Apply to Unit
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
